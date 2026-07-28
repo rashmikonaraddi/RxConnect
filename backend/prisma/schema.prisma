@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -6,8 +7,17 @@
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
+=======
+generator client {
+  provider = "prisma-client-js"
+>>>>>>> main
 }
 
 datasource db {
   provider = "postgresql"
+<<<<<<< HEAD
 }
+=======
+  url      = env("DATABASE_URL")
+}
+>>>>>>> main
