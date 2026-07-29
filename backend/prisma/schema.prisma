@@ -7,27 +7,3 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-model Medicine {
-  id                     String   @id @default(cuid())
-  name                   String
-  description            String?
-  manufacturer           String
-  category               String
-  dosage                 String
-  price                  Float
-  imageUrl               String?
-  prescriptionRequired   Boolean  @default(false)
-
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
-}
