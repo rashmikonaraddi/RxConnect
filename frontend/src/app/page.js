@@ -7,6 +7,7 @@ import ProfileView from "@/components/ProfileView";
 import DashboardOverview from "@/components/DashboardOverview";
 import PharmaciesView from "@/components/PharmaciesView";
 import SupportButton from "@/components/SupportButton";
+import BrowseMedicines from "@/components/BrowseMedicines";
 
 export default function CustomerDashboard() {
   const [activeTab, setActiveTab] = useState("profile");
@@ -45,15 +46,10 @@ export default function CustomerDashboard() {
         )}
 
         {activeTab === "browseMedicines" && (
-          <div className="text-center py-10">
-            <h2 className="text-2xl font-semibold">
-              Browse Medicines
-            </h2>
-            <p className="text-slate-500 mt-2">
-              This feature is under development.
-            </p>
-          </div>
+          <BrowseMedicines />
         )}
+
+     
 
         {activeTab === "uploadPrescription" && (
           <div className="text-center py-10">
