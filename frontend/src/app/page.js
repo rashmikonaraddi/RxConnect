@@ -6,6 +6,8 @@ import Navbar from "@/components/Navbar";
 import ProfileView from "@/components/ProfileView";
 import DashboardOverview from "@/components/DashboardOverview";
 import PharmaciesView from "@/components/PharmaciesView";
+import BrowseMedicinesView from "@/components/BrowseMedicinesView";
+import UploadPrescriptionView from "@/components/UploadPrescriptionView";
 import SupportButton from "@/components/SupportButton";
 import BrowseMedicines from "@/components/BrowseMedicines";
 
@@ -15,11 +17,11 @@ export default function CustomerDashboard() {
   const [user, setUser] = useState({
     fullName: "Customer Name",
     email: "customer@rxconnect.com",
-    phone: "+1 (555) 234-5678",
+    phone: "+91 98765 43210",
     customerId: "RX-9948201",
-    preferredPharmacy: "HealthFirst Central Pharmacy - Downtown",
-    deliveryAddress: "742 Evergreen Terrace, Springfield, IL 62704",
-    emergencyContact: "Emergency Contact (+1 555-987-6543)",
+    preferredPharmacy: "Downtown Pharmacy - City Center",
+    deliveryAddress: "742 Evergreen Terrace, Springfield",
+    emergencyContact: "Emergency Contact (+91 98765 99999)",
     joinedDate: "January 15, 2024",
   });
 
@@ -29,7 +31,7 @@ export default function CustomerDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans relative pb-16">
-      {/* Top Navy Header Banner */}
+      {/* Top Header Banner */}
       <Header user={user} />
 
       {/* Sub Navigation Bar */}
@@ -41,9 +43,7 @@ export default function CustomerDashboard() {
           <ProfileView user={user} onUpdateUser={handleUpdateUser} />
         )}
 
-        {activeTab === "dashboard" && (
-          <DashboardOverview />
-        )}
+        {activeTab === "dashboard" && <DashboardOverview />}
 
         {activeTab === "browseMedicines" && (
           <BrowseMedicines />
@@ -63,19 +63,15 @@ export default function CustomerDashboard() {
         )}
 
         {activeTab === "placeOrder" && (
-          <div className="text-center py-10">
-            <h2 className="text-2xl font-semibold">
-              Place Order
-            </h2>
-            <p className="text-slate-500 mt-2">
-              This feature is under development.
+          <div className="text-center py-10 bg-white rounded-2xl border border-slate-200 p-8 shadow-xs">
+            <h2 className="text-xl font-bold text-slate-900">Place Order</h2>
+            <p className="text-slate-500 text-xs mt-2">
+              Select your OTC items or verified prescription items to place an order.
             </p>
           </div>
         )}
 
-        {activeTab === "pharmacies" && (
-          <PharmaciesView />
-        )}
+        {activeTab === "pharmacies" && <PharmaciesView />}
       </main>
 
       {/* Floating Support Button */}
