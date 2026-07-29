@@ -9,13 +9,15 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  firstName  String
+  lastName   String
+  email      String   @unique
+  phone      String   @unique
+  password   String
+  role       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 model Medicine {
   id                     String   @id @default(cuid())
