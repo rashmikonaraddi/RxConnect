@@ -1,4 +1,5 @@
 const prisma = require("../config/db");
+const { createNotification } = require("../services/notificationService");
 
 // In-Memory Sample Database for instant Postman testing & dev mode fallback when PostgreSQL is offline
 let mockOrders = [
@@ -101,18 +102,11 @@ let mockOrders = [
   }
 ];
 
-/**
- * @desc    Fetch available delivery jobs ready for pickup
- * @route   GET /api/delivery/available
- * @access  Private (Delivery Partner)
- * @rules   Hard Gate: Only orders where status === 'PACKED' AND isPrescriptionVerified === true
- */
 const getAvailableJobs = async (req, res) => {
   try {
     const { branchId } = req.query;
     const targetBranch = branchId || (req.user && req.user.branchId);
 
-    // Try Prisma DB first
     try {
       const whereClause = {
         deliveryPartnerId: null,
@@ -133,7 +127,6 @@ const getAvailableJobs = async (req, res) => {
 
       return res.status(200).json({ success: true, count: availableJobs.length, data: availableJobs });
     } catch (dbErr) {
-      // Memory Fallback
       let filtered = mockOrders.filter(
         (o) => o.deliveryPartnerId === null && o.status === "PACKED" && o.isPrescriptionVerified === true
       );
@@ -147,11 +140,6 @@ const getAvailableJobs = async (req, res) => {
   }
 };
 
-/**
- * @desc    Fetch active jobs assigned to the logged-in delivery partner
- * @route   GET /api/delivery/active
- * @access  Private (Delivery Partner)
- */
 const getActiveJobs = async (req, res) => {
   try {
     const deliveryPartnerId = req.user.id;
@@ -182,11 +170,6 @@ const getActiveJobs = async (req, res) => {
   }
 };
 
-/**
- * @desc    Fetch completed delivery history for logged-in delivery partner
- * @route   GET /api/delivery/history
- * @access  Private (Delivery Partner)
- */
 const getDeliveryHistory = async (req, res) => {
   try {
     const deliveryPartnerId = req.user.id;
@@ -229,25 +212,18 @@ const getDeliveryHistory = async (req, res) => {
   }
 };
 
-/**
- * @desc    Issue #40: Allow a delivery partner to claim/self-assign an available job
- * @route   POST /api/delivery/claim/:orderId
- * @access  Private (Delivery Partner)
- * @rules   HARD GATE: Order must be PACKED and isPrescriptionVerified === true
- */
 const claimOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
     const deliveryPartnerId = req.user.id;
 
-    // Check in-memory database first or fallback
     let order = mockOrders.find((o) => o.id === orderId);
 
     try {
       const dbOrder = await prisma.order.findUnique({ where: { id: orderId } });
       if (dbOrder) order = dbOrder;
     } catch (dbErr) {
-      // Using in-memory fallback order
+      // Memory fallback
     }
 
     if (!order) {
@@ -257,7 +233,6 @@ const claimOrder = async (req, res) => {
       });
     }
 
-    // STRICT HARD GATE VALIDATION
     if (order.status !== "PACKED" || !order.isPrescriptionVerified) {
       return res.status(400).json({
         success: false,
@@ -277,7 +252,6 @@ const claimOrder = async (req, res) => {
       });
     }
 
-    // Try updating DB
     try {
       const updatedOrder = await prisma.order.update({
         where: { id: orderId },
@@ -294,7 +268,6 @@ const claimOrder = async (req, res) => {
         data: updatedOrder,
       });
     } catch (dbErr) {
-      // Memory Fallback Update
       order.deliveryPartnerId = deliveryPartnerId;
       return res.status(200).json({
         success: true,
@@ -308,11 +281,6 @@ const claimOrder = async (req, res) => {
   }
 };
 
-/**
- * @desc    Issue #41: Update Delivery Status (PACKED -> OUT_FOR_DELIVERY -> DELIVERED)
- * @route   PATCH /api/delivery/status/:orderId
- * @access  Private (Delivery Partner)
- */
 const updateDeliveryStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -325,7 +293,7 @@ const updateDeliveryStatus = async (req, res) => {
       const dbOrder = await prisma.order.findUnique({ where: { id: orderId } });
       if (dbOrder) order = dbOrder;
     } catch (dbErr) {
-      // Using fallback memory order
+      // Memory fallback
     }
 
     if (!order) {
@@ -335,7 +303,6 @@ const updateDeliveryStatus = async (req, res) => {
       });
     }
 
-    // Ensure order is assigned to logged-in delivery partner
     if (order.deliveryPartnerId && order.deliveryPartnerId !== deliveryPartnerId) {
       return res.status(403).json({
         success: false,
@@ -365,6 +332,23 @@ const updateDeliveryStatus = async (req, res) => {
       });
     }
 
+    // Trigger Notification for Order Customer (Issue #47)
+    if (targetStatus === "OUT_FOR_DELIVERY") {
+      await createNotification({
+        userId: order.customerId || "usr-001",
+        role: "CUSTOMER",
+        title: "Order Out for Delivery",
+        message: `Your prescription order #${orderId} is out for delivery with partner.`,
+      });
+    } else if (targetStatus === "DELIVERED") {
+      await createNotification({
+        userId: order.customerId || "usr-001",
+        role: "CUSTOMER",
+        title: "Order Delivered Successfully",
+        message: `Your prescription order #${orderId} has been safely delivered to your address.`,
+      });
+    }
+
     try {
       const updateData = { status: targetStatus, notes: notes || order.notes };
       if (targetStatus === "DELIVERED") updateData.deliveredAt = new Date();
@@ -384,7 +368,6 @@ const updateDeliveryStatus = async (req, res) => {
         data: updatedOrder,
       });
     } catch (dbErr) {
-      // Memory Fallback Update
       order.status = targetStatus;
       if (notes) order.notes = notes;
       if (targetStatus === "DELIVERED") order.deliveredAt = new Date();

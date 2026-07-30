@@ -4,6 +4,7 @@ require("dotenv").config();
 
 const deliveryRoutes = require("./routes/deliveryRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
 
@@ -23,6 +24,9 @@ app.use("/api/delivery", deliveryRoutes);
 
 // Admin Module Routes (Issues #43, #44, #45, #46)
 app.use("/api/admin", adminRoutes);
+
+// Notification System Routes (Issue #47)
+app.use("/api/notifications", notificationRoutes);
 
 // Using Port 5001 to avoid Windows System Service port 5000 conflict
 const PORT = process.env.PORT || 5001;
