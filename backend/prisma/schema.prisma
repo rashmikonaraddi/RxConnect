@@ -1,23 +1,98 @@
-<<<<<<< HEAD
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// RxConnect Pharmacy Platform Prisma Schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
-generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-=======
 generator client {
   provider = "prisma-client-js"
->>>>>>> main
 }
 
 datasource db {
   provider = "postgresql"
-<<<<<<< HEAD
-}
-=======
   url      = env("DATABASE_URL")
 }
->>>>>>> main
+
+enum Role {
+  CUSTOMER
+  PHARMACIST
+  DELIVERY_PARTNER
+  ADMIN
+}
+
+enum OrderStatus {
+  PLACED
+  VERIFIED
+  PACKED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  REJECTED
+}
+
+model User {
+  id           String      @id @default(uuid())
+  fullName     String
+  email        String      @unique
+  password     String
+  phone        String?
+  role         Role        @default(CUSTOMER)
+  employeeId   String?
+  vehicle      String?
+  isOnDuty     Boolean     @default(true)
+  branchId     String?
+  branch       Branch?     @relation(fields: [branchId], references: [id])
+  
+  customerOrders Order[]   @relation("CustomerOrders")
+  deliveryJobs   Order[]   @relation("DeliveryPartnerJobs")
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Branch {
+  id              String   @id @default(uuid())
+  code            String   @unique
+  name            String
+  address         String
+  phone           String
+  fulfillmentRate Float    @default(95.0)
+
+  users           User[]
+  orders          Order[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Order {
+  id                     String      @id @default(uuid())
+  branchId               String
+  branch                 Branch      @relation(fields: [branchId], references: [id])
+  
+  customerId             String
+  customer               User        @relation("CustomerOrders", fields: [customerId], references: [id])
+  
+  deliveryPartnerId      String?
+  deliveryPartner        User?       @relation("DeliveryPartnerJobs", fields: [deliveryPartnerId], references: [id])
+  
+  status                 OrderStatus @default(PLACED)
+  totalAmount            Float       // Amount in INR ₹
+  deliveryPayout         Float       @default(150.0) // Payout in INR ₹
+  destination            String
+  isPrescriptionVerified Boolean     @default(false) // Hard Gate Flag
+  notes                  String?
+  
+  packedAt               DateTime?
+  deliveredAt            DateTime?
+
+  items                  OrderItem[]
+
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
+}
+
+model OrderItem {
+  id           String  @id @default(uuid())
+  orderId      String
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  medicineName String
+  quantity     Int
+  price        Float
+  isRx         Boolean @default(false)
+}
