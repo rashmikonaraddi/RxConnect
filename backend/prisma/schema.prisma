@@ -1,13 +1,7 @@
-<<<<<<< HEAD
 // RxConnect Pharmacy Platform Prisma Schema
 
 generator client {
   provider = "prisma-client-js"
-=======
-generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
->>>>>>> 012945a6a9159b59bebba8e5b2ec12383eb5d0c8
 }
 
 datasource db {
@@ -22,78 +16,14 @@ enum Role {
   ADMIN
 }
 
-<<<<<<< HEAD
-=======
-model User {
-  id       String @id @default(cuid())
-  fullName String
-  email    String @unique
-  phone    String @unique
-  password String
-  role     Role   @default(CUSTOMER)
-
-  employeeId String? @unique
-  vehicle    String?
-  isOnDuty   Boolean @default(false)
-
-  branchId String?
-  branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
-
-  prescriptions Prescription[]
-
-  customerOrders Order[] @relation("CustomerOrders")
-  deliveryOrders Order[] @relation("DeliveryPartnerOrders")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([role])
-  @@index([branchId])
-}
-
-model Medicine {
-  id                   String      @id @default(cuid())
-  name                 String
-  description          String?
-  manufacturer         String
-  category             String
-  dosage               String
-  price                Float
-  imageUrl             String?
-  prescriptionRequired Boolean     @default(false)
-  inventories          Inventory[]
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime    @updatedAt
-}
-
-enum PrescriptionStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-model Prescription {
-  id         String             @id @default(cuid())
-  imageUrl   String
-  status     PrescriptionStatus @default(PENDING)
-  uploadedAt DateTime           @default(now())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
->>>>>>> 012945a6a9159b59bebba8e5b2ec12383eb5d0c8
 enum OrderStatus {
   PLACED
   VERIFIED
   PACKED
   OUT_FOR_DELIVERY
   DELIVERED
-<<<<<<< HEAD
   REJECTED
+  CANCELLED
 }
 
 model User {
@@ -101,9 +31,9 @@ model User {
   fullName     String
   email        String      @unique
   password     String
-  phone        String?
+  phone        String?     @unique
   role         Role        @default(CUSTOMER)
-  employeeId   String?
+  employeeId   String?     @unique
   vehicle      String?
   isOnDuty     Boolean     @default(true)
   branchId     String?
@@ -111,6 +41,7 @@ model User {
   
   customerOrders Order[]   @relation("CustomerOrders")
   deliveryJobs   Order[]   @relation("DeliveryPartnerJobs")
+  notifications  Notification[]
 
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
@@ -126,6 +57,7 @@ model Branch {
 
   users           User[]
   orders          Order[]
+  notifications   Notification[]
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -166,74 +98,22 @@ model OrderItem {
   quantity     Int
   price        Float
   isRx         Boolean @default(false)
-=======
-  CANCELLED
 }
 
-model Order {
-  id     String      @id @default(cuid())
-  status OrderStatus @default(PLACED)
-
-  totalAmount    Float
-  deliveryPayout Float @default(0.0)
-
-  destination   String
-  deliveryNotes String?
-
-  isPrescriptionVerified Boolean @default(false)
-
-  packedAt    DateTime?
-  deliveredAt DateTime?
-
+// Issue #47: Notification Logging System
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role?
+  branchId  String?
+  branch    Branch?  @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  branchId String
-  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
-
-  customerId String
-  customer   User   @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: Restrict)
-
-  deliveryPartnerId String?
-  deliveryPartner   User?   @relation("DeliveryPartnerOrders", fields: [deliveryPartnerId], references: [id], onDelete: SetNull)
-
-  @@index([branchId, status])
-  @@index([deliveryPartnerId])
-}
-
-model Branch {
-  id              String @id @default(cuid())
-  name            String
-  address         String
-  phone           String
-  fulfillmentRate Float  @default(100.0)
-
-  users       User[]
-  orders      Order[]
-  inventories Inventory[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  @@index([name])
-}
-
-model Inventory {
-  id String @id @default(cuid())
-
-  quantity  Int
-  threshold Int
-
-  medicineId String
-  medicine   Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
-
-  branchId String
-  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([medicineId, branchId])
+  @@index([userId])
+  @@index([role])
   @@index([branchId])
-  @@index([medicineId])
->>>>>>> 012945a6a9159b59bebba8e5b2ec12383eb5d0c8
 }
