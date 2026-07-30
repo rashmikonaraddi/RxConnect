@@ -73,3 +73,16 @@ model Order {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
+model Branch {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  city      String
+  state     String
+  pincode   String
+  phone     String
+  email     String?  @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
