@@ -22,10 +22,12 @@ router.get("/active", getActiveJobs);
 // Delivery history & payouts
 router.get("/history", getDeliveryHistory);
 
-// Issue #40: Claim an available delivery job
+// Issue #40: Claim an available delivery job (Supports POST and PATCH)
 router.post("/claim/:orderId", claimOrder);
+router.patch("/claim/:orderId", claimOrder);
 
-// Issue #41: Update delivery status (PACKED -> OUT_FOR_DELIVERY -> DELIVERED)
+// Issue #41: Update delivery status (Supports PATCH and POST)
 router.patch("/status/:orderId", updateDeliveryStatus);
+router.post("/status/:orderId", updateDeliveryStatus);
 
 module.exports = router;
