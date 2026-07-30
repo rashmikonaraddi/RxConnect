@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Branch" ADD COLUMN     "fulfillmentRate" DOUBLE PRECISION NOT NULL DEFAULT 100;
