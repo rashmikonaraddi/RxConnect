@@ -20,8 +20,12 @@ app.get("/", (req, res) => {
 // Delivery Module Routes (Issues #40 & #41)
 app.use("/api/delivery", deliveryRoutes);
 
-const PORT = process.env.PORT || 5000;
+// Using Port 5001 to avoid Windows System Service port 5000 conflict
+const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
+
+// Keep process event loop open
+setInterval(() => {}, 100000);
