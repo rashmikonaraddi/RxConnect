@@ -3,49 +3,73 @@ const bcrypt = require("bcryptjs");
 
 const signup = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      password
+    } = req.body;
 
-    const existingUser = await prisma.user.findUnique({
+
+    // Check existing user
+    const existingUser = await prisma.user.findFirst({
       where: {
-        email: email
+        OR: [
+          { email },
+          { phone }
+        ]
       }
     });
+
 
     if (existingUser) {
       return res.status(400).json({
-        message: "User already exists"
+        message: "Email or phone already exists"
       });
     }
 
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+
+    // Create customer account
     const user = await prisma.user.create({
       data: {
-        name,
+        firstName,
+        lastName,
         email,
+        phone,
         password: hashedPassword,
-        role: role || "CUSTOMER"
+        role: "CUSTOMER"
       }
     });
 
+
+    // Do not send password back
     res.status(201).json({
       message: "Signup successful",
       user: {
         id: user.id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
+        phone: user.phone,
         role: user.role
       }
     });
 
+
   } catch (error) {
-    console.error(error);
+    console.log(error);
 
     res.status(500).json({
       message: "Server error"
     });
   }
 };
+
 
 module.exports = {
   signup
