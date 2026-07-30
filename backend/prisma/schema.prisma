@@ -16,8 +16,10 @@ model User {
   phone      String   @unique
   password   String
   role       String
+  prescriptions Prescription[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
 }
 model Medicine {
   id                     String   @id @default(cuid())
@@ -32,4 +34,22 @@ model Medicine {
 
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
+}
+enum PrescriptionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Prescription {
+  id         String             @id @default(cuid())
+  imageUrl   String
+  status     PrescriptionStatus @default(PENDING)
+  uploadedAt DateTime           @default(now())
+
+  userId     String
+  user       User               @relation(fields: [userId], references: [id])
+
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
 }
