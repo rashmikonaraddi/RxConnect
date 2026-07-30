@@ -16,10 +16,80 @@ enum Role {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id         String   @id @default(cuid())
+  firstName  String
+  lastName   String
+  email      String   @unique
+  phone      String   @unique
+  password   String
+  role       String
+  prescriptions Prescription[]
+  orders Order[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+}
+model Medicine {
+  id                     String   @id @default(cuid())
+  name                   String
+  description            String?
+  manufacturer           String
+  category               String
+  dosage                 String
+  price                  Float
+  imageUrl               String?
+  prescriptionRequired   Boolean  @default(false)
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+enum PrescriptionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Prescription {
+  id         String             @id @default(cuid())
+  imageUrl   String
+  status     PrescriptionStatus @default(PENDING)
+  uploadedAt DateTime           @default(now())
+
+  userId     String
+  user       User               @relation(fields: [userId], references: [id])
+
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+}
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  totalAmount Float
+  status      OrderStatus @default(PENDING)
+
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+model Branch {
+  id        String   @id @default(cuid())
   name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(CUSTOMER)
+  address   String
+  city      String
+  state     String
+  pincode   String
+  phone     String
+  email     String?  @unique
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
