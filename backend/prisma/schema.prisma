@@ -17,6 +17,7 @@ model User {
   password   String
   role       String
   prescriptions Prescription[]
+  orders Order[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -52,4 +53,23 @@ model Prescription {
 
   createdAt  DateTime           @default(now())
   updatedAt  DateTime           @updatedAt
+}
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  totalAmount Float
+  status      OrderStatus @default(PENDING)
+
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
