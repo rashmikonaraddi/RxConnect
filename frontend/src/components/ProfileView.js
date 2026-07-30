@@ -66,7 +66,7 @@ export default function ProfileView({ user, onUpdateUser }) {
                   Full Name
                 </span>
                 <span className="text-base font-semibold text-slate-800">
-                  {user.fullName || "Not provided"}
+                {user.firstName} {user.lastName}
                 </span>
               </div>
             </div>
@@ -224,100 +224,150 @@ export default function ProfileView({ user, onUpdateUser }) {
           </div>
         </div>
       ) : (
-        /* Edit Form Mode */
-        <form onSubmit={handleSaveProfile} className="p-8 md:p-10 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
-                Full Name
-              </label>
-              <input
-                type="text"
-                value={editForm.fullName || ""}
-                onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0b193c]/50 text-sm font-medium text-slate-800"
-                required
-              />
+        <div className="p-8 md:p-10">
+          <form onSubmit={handleSaveProfile} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  value={editForm.firstName || ""}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      firstName: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0b193c]/50 text-sm font-medium text-slate-800"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  value={editForm.lastName || ""}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      lastName: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0b193c]/50 text-sm font-medium text-slate-800"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={editForm.email || ""}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      email: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0b193c]/50 text-sm font-medium text-slate-800"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  value={editForm.phone || ""}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      phone: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0b193c]/50 text-sm font-medium text-slate-800"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
+                  Preferred Pharmacy
+                </label>
+                <input
+                  type="text"
+                  value={editForm.preferredPharmacy || ""}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      preferredPharmacy: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0b193c]/50 text-sm font-medium text-slate-800"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
+                  Delivery Address
+                </label>
+                <input
+                  type="text"
+                  value={editForm.deliveryAddress || ""}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      deliveryAddress: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0b193c]/50 text-sm font-medium text-slate-800"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
+                  Emergency Contact
+                </label>
+                <input
+                  type="text"
+                  value={editForm.emergencyContact || ""}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      emergencyContact: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0b193c]/50 text-sm font-medium text-slate-800"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
-                Email
-              </label>
-              <input
-                type="email"
-                value={editForm.email || ""}
-                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0b193c]/50 text-sm font-medium text-slate-800"
-                required
-              />
-            </div>
+            <div className="pt-6 border-t border-slate-100 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-sm font-medium transition cursor-pointer"
+              >
+                Cancel
+              </button>
 
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
-                Phone Number
-              </label>
-              <input
-                type="text"
-                value={editForm.phone || ""}
-                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0b193c]/50 text-sm font-medium text-slate-800"
-              />
+              <button
+                type="submit"
+                className="px-6 py-2.5 bg-[#0b193c] hover:bg-[#13285c] text-white text-sm font-semibold rounded-xl shadow-sm transition cursor-pointer"
+              >
+                Save Changes
+              </button>
             </div>
-
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
-                Preferred Pharmacy
-              </label>
-              <input
-                type="text"
-                value={editForm.preferredPharmacy || ""}
-                onChange={(e) => setEditForm({ ...editForm, preferredPharmacy: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0b193c]/50 text-sm font-medium text-slate-800"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
-                Delivery Address
-              </label>
-              <input
-                type="text"
-                value={editForm.deliveryAddress || ""}
-                onChange={(e) => setEditForm({ ...editForm, deliveryAddress: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0b193c]/50 text-sm font-medium text-slate-800"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-1.5">
-                Emergency Contact
-              </label>
-              <input
-                type="text"
-                value={editForm.emergencyContact || ""}
-                onChange={(e) => setEditForm({ ...editForm, emergencyContact: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0b193c]/50 text-sm font-medium text-slate-800"
-              />
-            </div>
-          </div>
-
-          <div className="pt-6 border-t border-slate-100 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => setIsEditing(false)}
-              className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-sm font-medium transition cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2.5 bg-[#0b193c] hover:bg-[#13285c] text-white text-sm font-semibold rounded-xl shadow-sm transition cursor-pointer"
-            >
-              Save Changes
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       )}
     </div>
   );

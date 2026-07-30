@@ -1,18 +1,36 @@
-<<<<<<< HEAD
 // RxConnect Pharmacy Platform Prisma Schema
 
 generator client {
   provider = "prisma-client-js"
-=======
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
->>>>>>> 012945a6a9159b59bebba8e5b2ec12383eb5d0c8
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+  PHARMACIST
+  DELIVERY
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+  PHARMACIST
+  DELIVERY
+}
+
+enum Role {
+  CUSTOMER
+  PHARMACIST
+  DELIVERY_PARTNER
+  ADMIN
 }
 
 enum Role {
@@ -39,6 +57,13 @@ model User {
   branchId String?
   branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
 
+  id         String   @id @default(cuid())
+  firstName  String
+  lastName   String
+  email      String   @unique
+  phone      String   @unique
+  password   String
+  role Role @default(CUSTOMER)
   prescriptions Prescription[]
 
   customerOrders Order[] @relation("CustomerOrders")
@@ -85,14 +110,12 @@ model Prescription {
   updatedAt DateTime @updatedAt
 }
 
->>>>>>> 012945a6a9159b59bebba8e5b2ec12383eb5d0c8
 enum OrderStatus {
   PLACED
   VERIFIED
   PACKED
   OUT_FOR_DELIVERY
   DELIVERED
-<<<<<<< HEAD
   REJECTED
 }
 
@@ -166,7 +189,6 @@ model OrderItem {
   quantity     Int
   price        Float
   isRx         Boolean @default(false)
-=======
   CANCELLED
 }
 
@@ -235,5 +257,4 @@ model Inventory {
   @@unique([medicineId, branchId])
   @@index([branchId])
   @@index([medicineId])
->>>>>>> 012945a6a9159b59bebba8e5b2ec12383eb5d0c8
 }
