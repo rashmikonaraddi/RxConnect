@@ -43,7 +43,7 @@ model User {
 }
 
 model Medicine {
-  id                   String  @id @default(cuid())
+  id                   String      @id @default(cuid())
   name                 String
   description          String?
   manufacturer         String
@@ -51,10 +51,10 @@ model Medicine {
   dosage               String
   price                Float
   imageUrl             String?
-  prescriptionRequired Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  prescriptionRequired Boolean     @default(false)
+  inventories          Inventory[]
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
 }
 
 enum PrescriptionStatus {
@@ -123,11 +123,31 @@ model Branch {
   phone           String
   fulfillmentRate Float  @default(100.0)
 
-  users  User[]
-  orders Order[]
+  users       User[]
+  orders      Order[]
+  inventories Inventory[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([name])
+}
+
+model Inventory {
+  id String @id @default(cuid())
+
+  quantity  Int
+  threshold Int
+
+  medicineId String
+  medicine   Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([name])
+  @@unique([medicineId, branchId])
+  @@index([branchId])
+  @@index([medicineId])
 }
