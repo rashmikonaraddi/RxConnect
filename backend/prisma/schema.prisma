@@ -82,6 +82,7 @@ model Branch {
   pincode   String
   phone     String
   email     String?  @unique
+   fulfillmentRate Float @default(100)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
