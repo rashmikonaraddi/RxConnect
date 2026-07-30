@@ -22,7 +22,7 @@ model User {
   email      String   @unique
   phone      String   @unique
   password   String
-  role       String
+  role Role @default(CUSTOMER)
   prescriptions Prescription[]
   orders Order[]
   createdAt  DateTime @default(now())

@@ -10,7 +10,14 @@ import {
   FaEyeSlash,
 } from "react-icons/fa";
 
-export default function Input({ label, type, placeholder }) {
+export default function Input({
+  label,
+  type,
+  placeholder,
+  name,
+  value,
+  onChange,
+}) {
   const [showPassword, setShowPassword] = useState(false);
 
   const icons = {
@@ -33,19 +40,20 @@ export default function Input({ label, type, placeholder }) {
 
   return (
     <div className="mb-5">
-
       <label className="mb-2 block text-sm font-semibold text-gray-700">
         {label}
       </label>
 
       <div className="relative">
-
         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
           {icons[label]}
         </span>
 
         <input
           type={inputType}
+          name={name}
+          value={value}
+          onChange={onChange}
           placeholder={placeholder}
           className="
             w-full
@@ -76,9 +84,7 @@ export default function Input({ label, type, placeholder }) {
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         )}
-
       </div>
-
     </div>
   );
 }

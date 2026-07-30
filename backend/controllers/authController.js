@@ -1,9 +1,11 @@
-const prisma = require("../config/db");
+const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
+
+const prisma = new PrismaClient();
 
 const signup = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { firstName, lastName, email, phone, password } = req.body;
 
     const existingUser = await prisma.user.findUnique({
       where: {
@@ -21,10 +23,12 @@ const signup = async (req, res) => {
 
     const user = await prisma.user.create({
       data: {
-        name,
+        firstName,
+        lastName,
         email,
+        phone,
         password: hashedPassword,
-        role: role || "CUSTOMER"
+        role: "CUSTOMER"
       }
     });
 
@@ -32,7 +36,8 @@ const signup = async (req, res) => {
       message: "Signup successful",
       user: {
         id: user.id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         role: user.role
       }
