@@ -1,35 +1,69 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 require("dotenv").config();
 
+const authRoutes = require("./routes/authRoutes");
+const prescriptionRoutes = require("./routes/prescriptionRoutes");
+const medicineRoutes = require("./routes/medicineRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const deliveryRoutes = require("./routes/deliveryRoutes");
-const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// Middleware
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Next.js frontend
+    credentials: true,
+  })
+);
 
-// Health Check Endpoint
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Static folder for uploaded prescription images
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Health Check
 app.get("/", (req, res) => {
-  res.json({
+  res.status(200).json({
     success: true,
     message: "RxConnect Pharmacy Platform Backend API is Running 🚀",
+    status: "Healthy",
   });
 });
 
-// Delivery Module Routes (Issues #40 & #41)
+// API Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/prescriptions", prescriptionRoutes);
+app.use("/api", medicineRoutes); // /api/medicines and /api/branches
+app.use("/api/orders", orderRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/delivery", deliveryRoutes);
 
-// Admin Module Routes (Issues #43, #44, #45, #46)
-app.use("/api/admin", adminRoutes);
+// 404 Handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
 
-// Using Port 5001 to avoid Windows System Service port 5000 conflict
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error(err);
+
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+});
+
+// Start Server
 const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
-
-// Keep process event loop open
-setInterval(() => {}, 100000);

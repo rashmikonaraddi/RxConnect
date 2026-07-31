@@ -1,13 +1,7 @@
-<<<<<<< HEAD
 // RxConnect Pharmacy Platform Prisma Schema
 
 generator client {
   provider = "prisma-client-js"
-=======
-generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
->>>>>>> 012945a6a9159b59bebba8e5b2ec12383eb5d0c8
 }
 
 datasource db {
@@ -22,27 +16,39 @@ enum Role {
   ADMIN
 }
 
-<<<<<<< HEAD
-=======
+enum PrescriptionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum OrderStatus {
+  PLACED
+  VERIFIED
+  PACKED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  REJECTED
+  CANCELLED
+}
+
 model User {
-  id       String @id @default(cuid())
-  fullName String
-  email    String @unique
-  phone    String @unique
-  password String
-  role     Role   @default(CUSTOMER)
-
-  employeeId String? @unique
+  id         String   @id @default(uuid())
+  fullName   String
+  email      String   @unique
+  phone      String?
+  password   String
+  role       Role     @default(CUSTOMER)
+  employeeId String?
   vehicle    String?
-  isOnDuty   Boolean @default(false)
+  isOnDuty   Boolean  @default(true)
+  branchId   String?
+  branch     Branch?  @relation(fields: [branchId], references: [id])
 
-  branchId String?
-  branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
-
-  prescriptions Prescription[]
-
-  customerOrders Order[] @relation("CustomerOrders")
-  deliveryOrders Order[] @relation("DeliveryPartnerOrders")
+  prescriptions  Prescription[]
+  customerOrders Order[]        @relation("CustomerOrders")
+  deliveryJobs   Order[]        @relation("DeliveryPartnerJobs")
+  notifications  Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -51,8 +57,24 @@ model User {
   @@index([branchId])
 }
 
+model Branch {
+  id              String   @id @default(uuid())
+  code            String?  @unique
+  name            String
+  address         String
+  phone           String
+  fulfillmentRate Float    @default(95.0)
+
+  users       User[]
+  orders      Order[]
+  inventories Inventory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Medicine {
-  id                   String      @id @default(cuid())
+  id                   String      @id @default(uuid())
   name                 String
   description          String?
   manufacturer         String
@@ -62,172 +84,22 @@ model Medicine {
   imageUrl             String?
   prescriptionRequired Boolean     @default(false)
   inventories          Inventory[]
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime    @updatedAt
-}
-
-enum PrescriptionStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-model Prescription {
-  id         String             @id @default(cuid())
-  imageUrl   String
-  status     PrescriptionStatus @default(PENDING)
-  uploadedAt DateTime           @default(now())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
+  orderItems           OrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
->>>>>>> 012945a6a9159b59bebba8e5b2ec12383eb5d0c8
-enum OrderStatus {
-  PLACED
-  VERIFIED
-  PACKED
-  OUT_FOR_DELIVERY
-  DELIVERED
-<<<<<<< HEAD
-  REJECTED
-}
-
-model User {
-  id           String      @id @default(uuid())
-  fullName     String
-  email        String      @unique
-  password     String
-  phone        String?
-  role         Role        @default(CUSTOMER)
-  employeeId   String?
-  vehicle      String?
-  isOnDuty     Boolean     @default(true)
-  branchId     String?
-  branch       Branch?     @relation(fields: [branchId], references: [id])
-  
-  customerOrders Order[]   @relation("CustomerOrders")
-  deliveryJobs   Order[]   @relation("DeliveryPartnerJobs")
-
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-}
-
-model Branch {
-  id              String   @id @default(uuid())
-  code            String   @unique
-  name            String
-  address         String
-  phone           String
-  fulfillmentRate Float    @default(95.0)
-
-  users           User[]
-  orders          Order[]
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-model Order {
-  id                     String      @id @default(uuid())
-  branchId               String
-  branch                 Branch      @relation(fields: [branchId], references: [id])
-  
-  customerId             String
-  customer               User        @relation("CustomerOrders", fields: [customerId], references: [id])
-  
-  deliveryPartnerId      String?
-  deliveryPartner        User?       @relation("DeliveryPartnerJobs", fields: [deliveryPartnerId], references: [id])
-  
-  status                 OrderStatus @default(PLACED)
-  totalAmount            Float       // Amount in INR ₹
-  deliveryPayout         Float       @default(150.0) // Payout in INR ₹
-  destination            String
-  isPrescriptionVerified Boolean     @default(false) // Hard Gate Flag
-  notes                  String?
-  
-  packedAt               DateTime?
-  deliveredAt            DateTime?
-
-  items                  OrderItem[]
-
-  createdAt              DateTime    @default(now())
-  updatedAt              DateTime    @updatedAt
-}
-
-model OrderItem {
-  id           String  @id @default(uuid())
-  orderId      String
-  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  medicineName String
-  quantity     Int
-  price        Float
-  isRx         Boolean @default(false)
-=======
-  CANCELLED
-}
-
-model Order {
-  id     String      @id @default(cuid())
-  status OrderStatus @default(PLACED)
-
-  totalAmount    Float
-  deliveryPayout Float @default(0.0)
-
-  destination   String
-  deliveryNotes String?
-
-  isPrescriptionVerified Boolean @default(false)
-
-  packedAt    DateTime?
-  deliveredAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  branchId String
-  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
-
-  customerId String
-  customer   User   @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: Restrict)
-
-  deliveryPartnerId String?
-  deliveryPartner   User?   @relation("DeliveryPartnerOrders", fields: [deliveryPartnerId], references: [id], onDelete: SetNull)
-
-  @@index([branchId, status])
-  @@index([deliveryPartnerId])
-}
-
-model Branch {
-  id              String @id @default(cuid())
-  name            String
-  address         String
-  phone           String
-  fulfillmentRate Float  @default(100.0)
-
-  users       User[]
-  orders      Order[]
-  inventories Inventory[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  @@index([name])
 }
 
 model Inventory {
-  id String @id @default(cuid())
-
+  id        String   @id @default(uuid())
   quantity  Int
-  threshold Int
+  threshold Int      @default(10)
 
   medicineId String
   medicine   Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
 
   branchId String
-  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  branch   Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -235,5 +107,78 @@ model Inventory {
   @@unique([medicineId, branchId])
   @@index([branchId])
   @@index([medicineId])
->>>>>>> 012945a6a9159b59bebba8e5b2ec12383eb5d0c8
+}
+
+model Prescription {
+  id              String             @id @default(uuid())
+  imageUrl        String
+  doctorName      String?
+  notes           String?
+  status          PrescriptionStatus @default(PENDING)
+  rejectionReason String?
+  uploadedAt      DateTime           @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id                     String      @id @default(uuid())
+  branchId               String
+  branch                 Branch      @relation(fields: [branchId], references: [id])
+  customerId             String
+  customer               User        @relation("CustomerOrders", fields: [customerId], references: [id])
+  deliveryPartnerId      String?
+  deliveryPartner        User?       @relation("DeliveryPartnerJobs", fields: [deliveryPartnerId], references: [id])
+
+  status                 OrderStatus @default(PLACED)
+  totalAmount            Float
+  deliveryPayout         Float       @default(150.0)
+  destination            String
+  deliveryNotes          String?
+  isPrescriptionVerified Boolean     @default(false)
+  paymentStatus          String      @default("PENDING")
+  paymentMethod          String?     @default("CARD")
+
+  packedAt    DateTime?
+  deliveredAt DateTime?
+
+  items         OrderItem[]
+  prescriptions Prescription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrderItem {
+  id           String    @id @default(uuid())
+  orderId      String
+  order        Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  medicineId   String?
+  medicine     Medicine? @relation(fields: [medicineId], references: [id])
+  medicineName String
+  quantity     Int
+  price        Float
+  isRx         Boolean   @default(false)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role?
+  branchId  String?
+  title     String
+  message   String
+  type      String   @default("INFO")
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
