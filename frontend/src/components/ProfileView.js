@@ -11,9 +11,35 @@ export default function ProfileView({ user, onUpdateUser }) {
     setEditForm({ ...user });
   }, [user]);
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
-    onUpdateUser({ ...editForm });
+    const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
+    try {
+      const res = await fetch("http://localhost:5001/api/auth/me", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify(editForm),
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.user) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("rxconnect_user", JSON.stringify(data.user));
+        }
+        if (onUpdateUser) {
+          onUpdateUser(data.user);
+        }
+      } else if (onUpdateUser) {
+        onUpdateUser({ ...editForm });
+      }
+    } catch (err) {
+      console.warn("Failed to persist profile update to backend:", err);
+      if (onUpdateUser) {
+        onUpdateUser({ ...editForm });
+      }
+    }
     setIsEditing(false);
   };
 

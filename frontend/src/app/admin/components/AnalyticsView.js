@@ -4,8 +4,32 @@ import React, { useState } from "react";
 
 export default function AnalyticsView({ branches = [] }) {
   const [reportExported, setReportExported] = useState(false);
+  const [analytics, setAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const topSellingMedicines = [
+  React.useEffect(() => {
+    async function fetchAnalytics() {
+      const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
+      try {
+        const res = await fetch("http://localhost:5001/api/admin/analytics", {
+          headers: { Authorization: token ? `Bearer ${token}` : "" },
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            setAnalytics(json.data);
+          }
+        }
+      } catch (err) {
+        console.warn("Analytics fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAnalytics();
+  }, []);
+
+  const topSellingMedicines = analytics?.topSellingMedicines || [
     { rank: 1, name: "Amoxicillin 500mg", type: "Rx", unitsSold: 420, revenue: "₹77,700", category: "Antibiotics", stockLevel: "High" },
     { rank: 2, name: "Paracetamol 650mg", type: "OTC", unitsSold: 380, revenue: "₹11,400", category: "Pain Relief", stockLevel: "Normal" },
     { rank: 3, name: "Metformin 500mg", type: "Rx", unitsSold: 310, revenue: "₹68,200", category: "Chronic Care", stockLevel: "Low" },
@@ -51,15 +75,18 @@ export default function AnalyticsView({ branches = [] }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Monthly Gross Revenue</p>
-          <h3 className="text-3xl font-black text-slate-900">₹8,43,200</h3>
+          <h3 className="text-3xl font-black text-slate-900">
+            ₹{analytics?.grossRevenueINR !== undefined ? analytics.grossRevenueINR.toLocaleString("en-IN") : "8,43,200"}
+          </h3>
           <p className="text-xs text-emerald-600 font-bold mt-2">↑ 18.2% from last month</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Rx vs OTC Order Ratio</p>
           <div className="flex items-baseline gap-3">
-            <h3 className="text-3xl font-black text-purple-700">58% Rx</h3>
-            <span className="text-sm font-bold text-slate-500">42% OTC</span>
+            <h3 className="text-3xl font-black text-purple-700">
+              {analytics?.rxToOtcRatio || "58% Rx / 42% OTC"}
+            </h3>
           </div>
           <div className="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden flex">
             <div className="bg-purple-600 h-full w-[58%]"></div>

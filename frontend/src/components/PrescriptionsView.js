@@ -18,26 +18,48 @@ export default function PrescriptionsView() {
   const videoRef = useRef(null);
   const mediaStreamRef = useRef(null);
 
-  const [prescriptions, setPrescriptions] = useState([
-    {
-      id: "rx-1",
-      title: "Amoxicillin 500mg (Antibiotic)",
-      doctor: "Dr. Smith",
-      refillsLeft: 2,
-      status: "Valid",
-      statusColor: "bg-emerald-100 text-emerald-700 border-emerald-200",
-      dateAdded: "July 20, 2026",
-    },
-    {
-      id: "rx-2",
-      title: "Lisinopril 10mg (Blood Pressure)",
-      doctor: "Dr. Adams",
-      refillsLeft: 5,
-      status: "Valid",
-      statusColor: "bg-emerald-100 text-emerald-700 border-emerald-200",
-      dateAdded: "July 15, 2026",
-    },
-  ]);
+  const [prescriptions, setPrescriptions] = useState([]);
+
+  useEffect(() => {
+    async function fetchPrescriptions() {
+      const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
+      try {
+        const res = await fetch("http://localhost:5001/api/prescriptions", {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.prescriptions)) {
+            const formatted = data.prescriptions.map((p) => ({
+              id: p.id,
+              title: p.notes || `Prescription #${p.id.slice(0, 6)}`,
+              doctor: p.doctorName || "Doctor Unspecified",
+              refillsLeft: 1,
+              status: p.status === "APPROVED" ? "Valid" : p.status === "REJECTED" ? "Rejected" : "Pending Verification",
+              statusColor:
+                p.status === "APPROVED"
+                  ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                  : p.status === "REJECTED"
+                  ? "bg-rose-100 text-rose-700 border-rose-200"
+                  : "bg-amber-100 text-amber-800 border-amber-200",
+              dateAdded: new Date(p.uploadedAt || p.createdAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              }),
+            }));
+            setPrescriptions(formatted);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to fetch prescriptions from backend API:", err);
+      }
+    }
+
+    fetchPrescriptions();
+  }, []);
 
   const handleFileSelect = (file) => {
     if (!file) return;
@@ -131,28 +153,48 @@ export default function PrescriptionsView() {
     }
   };
 
-  const handleUploadSubmit = (e) => {
+  const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!selectedFile) return;
 
     setIsSubmitting(true);
+    const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
 
-    setTimeout(() => {
-      const newRx = {
-        id: `rx-${Date.now()}`,
-        title: selectedFile.name.replace(/\.[^/.]+$/, ""),
-        doctor: doctorName || "Scanned Prescription",
-        refillsLeft: 1,
-        status: "Pending Verification",
-        statusColor: "bg-amber-100 text-amber-800 border-amber-200",
-        dateAdded: new Date().toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        }),
-      };
+    try {
+      const formData = new FormData();
+      formData.append("prescription", selectedFile);
+      if (doctorName) formData.append("doctorName", doctorName);
+      if (rxNotes) formData.append("notes", rxNotes);
 
-      setPrescriptions([newRx, ...prescriptions]);
+      const res = await fetch("http://localhost:5001/api/prescriptions/upload", {
+        method: "POST",
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.prescription) {
+        const p = data.prescription;
+        const newRx = {
+          id: p.id,
+          title: p.notes || selectedFile.name.replace(/\.[^/.]+$/, ""),
+          doctor: p.doctorName || doctorName || "Scanned Prescription",
+          refillsLeft: 1,
+          status: "Pending Verification",
+          statusColor: "bg-amber-100 text-amber-800 border-amber-200",
+          dateAdded: new Date(p.uploadedAt || Date.now()).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          }),
+        };
+        setPrescriptions([newRx, ...prescriptions]);
+      } else {
+        throw new Error(data.message || "Upload failed");
+      }
+
       setIsSubmitting(false);
       setUploadSuccess(true);
 
@@ -164,7 +206,10 @@ export default function PrescriptionsView() {
         setDoctorName("");
         setRxNotes("");
       }, 1500);
-    }, 1000);
+    } catch (err) {
+      console.warn("Upload Rx failed:", err);
+      setIsSubmitting(false);
+    }
   };
 
   return (

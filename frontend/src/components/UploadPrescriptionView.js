@@ -8,22 +8,54 @@ export default function UploadPrescriptionView() {
   const [doctorNotes, setDoctorNotes] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedFile) return;
 
-    setUploadSuccess(true);
-    setTimeout(() => {
-      setUploadSuccess(false);
-      setSelectedFile(null);
-      setDoctorNotes("");
-    }, 4000);
+    setIsSubmitting(true);
+    setErrorMsg("");
+
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
+      const formData = new FormData();
+      formData.append("prescriptionFile", selectedFile);
+      formData.append("prescription", selectedFile);
+      if (doctorNotes) formData.append("notes", doctorNotes);
+
+      const res = await fetch("http://localhost:5001/api/prescriptions/upload", {
+        method: "POST",
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setUploadSuccess(true);
+        setTimeout(() => {
+          setUploadSuccess(false);
+          setSelectedFile(null);
+          setDoctorNotes("");
+        }, 3500);
+      } else {
+        throw new Error(data.message || "Failed to upload prescription.");
+      }
+    } catch (err) {
+      console.error("Prescription upload error:", err);
+      setErrorMsg(err.message || "Upload failed. Please check your file and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -37,6 +69,13 @@ export default function UploadPrescriptionView() {
           Upload your prescription for manual review by our licensed branch pharmacists.
         </p>
       </div>
+
+      {/* Error Message Banner */}
+      {errorMsg && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl text-xs font-semibold">
+          ⚠️ {errorMsg}
+        </div>
+      )}
 
       {/* Upload Notification Toast */}
       {uploadSuccess && (
@@ -119,14 +158,21 @@ export default function UploadPrescriptionView() {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={!selectedFile}
-          className={`w-full py-3 text-xs font-bold rounded-xl transition-all shadow-xs ${
-            selectedFile
+          disabled={!selectedFile || isSubmitting}
+          className={`w-full py-3 text-xs font-bold rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 ${
+            selectedFile && !isSubmitting
               ? "bg-slate-900 hover:bg-slate-800 text-white cursor-pointer"
               : "bg-slate-200 text-slate-400 cursor-not-allowed"
           }`}
         >
-          Submit Prescription for Pharmacist Review →
+          {isSubmitting ? (
+            <>
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              <span>Uploading to Pharmacist Queue...</span>
+            </>
+          ) : (
+            <span>Submit Prescription for Pharmacist Review →</span>
+          )}
         </button>
       </form>
     </div>

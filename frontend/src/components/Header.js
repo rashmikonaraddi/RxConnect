@@ -33,10 +33,12 @@ export default function Header({ user }) {
   // Fetch notifications from Backend API (Issue #47)
   useEffect(() => {
     async function fetchNotifications() {
+      const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
       try {
         const res = await fetch("http://localhost:5001/api/notifications", {
           headers: {
-            "x-user-id": user?.id || "usr-001",
+            Authorization: token ? `Bearer ${token}` : "",
+            "x-user-id": user?.id || "",
             "x-user-role": user?.role || "CUSTOMER",
           },
         });
@@ -56,11 +58,13 @@ export default function Header({ user }) {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const handleMarkAsRead = async (id) => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
     try {
       await fetch(`http://localhost:5001/api/notifications/${id}/read`, {
         method: "PATCH",
         headers: {
-          "x-user-id": user?.id || "usr-001",
+          Authorization: token ? `Bearer ${token}` : "",
+          "x-user-id": user?.id || "",
           "x-user-role": user?.role || "CUSTOMER",
         },
       });

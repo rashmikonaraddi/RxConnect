@@ -1,56 +1,65 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function OrdersView() {
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const orders = [
-    {
-      id: "RX-88412",
-      date: "July 28, 2026",
-      pharmacy: "HealthFirst Central Pharmacy - Downtown",
-      status: "Out For Delivery",
-      statusColor: "bg-amber-100 text-amber-800 border-amber-200",
-      totalAmount: "$34.50",
-      estimatedDelivery: "Today by 5:30 PM",
-      items: [
-        { name: "Amoxicillin 500mg (Capsules)", qty: 1, price: "$18.50" },
-        { name: "Multivitamin Daily Formula", qty: 1, price: "$16.00" },
-      ],
-      deliveryAddress: "742 Evergreen Terrace, Springfield, IL 62704",
-      paymentMethod: "Visa ending in 4242",
-    },
-    {
-      id: "RX-77290",
-      date: "July 12, 2026",
-      pharmacy: "CarePlus Community Pharmacy",
-      status: "Delivered",
-      statusColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-      totalAmount: "$22.00",
-      estimatedDelivery: "Delivered on Jul 12, 2:15 PM",
-      items: [
-        { name: "Lisinopril 10mg (30 Tablets)", qty: 1, price: "$22.00" },
-      ],
-      deliveryAddress: "742 Evergreen Terrace, Springfield, IL 62704",
-      paymentMethod: "Visa ending in 4242",
-    },
-    {
-      id: "RX-65104",
-      date: "June 25, 2026",
-      pharmacy: "HealthFirst Central Pharmacy - Downtown",
-      status: "Completed",
-      statusColor: "bg-slate-100 text-slate-700 border-slate-200",
-      totalAmount: "$45.99",
-      estimatedDelivery: "Delivered on Jun 25, 11:40 AM",
-      items: [
-        { name: "Omeprazole 20mg (Delayed Release)", qty: 2, price: "$30.00" },
-        { name: "First Aid Antiseptic Bandages", qty: 1, price: "$15.99" },
-      ],
-      deliveryAddress: "742 Evergreen Terrace, Springfield, IL 62704",
-      paymentMethod: "Mastercard ending in 8819",
-    },
-  ];
+  useEffect(() => {
+    async function fetchOrders() {
+      const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
+      try {
+        const res = await fetch("http://localhost:5001/api/orders", {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.orders)) {
+            const formatted = data.orders.map((o) => ({
+              id: o.id,
+              date: new Date(o.createdAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              }),
+              pharmacy: o.branch?.name || "RxConnect Pharmacy",
+              status: o.status,
+              statusColor:
+                o.status === "DELIVERED" || o.status === "COMPLETED"
+                  ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                  : o.status === "OUT_FOR_DELIVERY" || o.status === "PACKED"
+                  ? "bg-amber-100 text-amber-800 border-amber-200"
+                  : "bg-slate-100 text-slate-700 border-slate-200",
+              totalAmount: `₹${o.totalAmount?.toFixed(2)}`,
+              estimatedDelivery: o.deliveredAt
+                ? `Delivered on ${new Date(o.deliveredAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                : o.status === "OUT_FOR_DELIVERY"
+                ? "Out for Delivery Today"
+                : o.status,
+              items: (o.items || []).map((i) => ({
+                name: i.medicineName,
+                qty: i.quantity,
+                price: `₹${i.price?.toFixed(2)}`,
+              })),
+              deliveryAddress: o.destination,
+              paymentMethod: o.paymentMethod || "CARD",
+            }));
+            setOrders(formatted);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to fetch orders from backend:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchOrders();
+  }, []);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-8 space-y-6">

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function Input({ label, type, placeholder }) {
+export default function Input({ label, type, placeholder, value, onChange, name, required, ...props }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const getIcon = (label) => {
@@ -48,6 +48,11 @@ export default function Input({ label, type, placeholder }) {
         <input
           type={inputType}
           placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          name={name}
+          required={required}
+          {...props}
           className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-12 pr-12 text-gray-700 outline-none transition-all duration-300 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
         />
 

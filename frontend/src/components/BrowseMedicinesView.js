@@ -1,80 +1,52 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-export default function BrowseMedicinesView() {
+export default function BrowseMedicinesView({ onAddToCart, onPlaceOrder }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedMedicine, setSelectedMedicine] = useState(null);
+  const [medicines, setMedicines] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const medicines = [
-    {
-      id: "med-1",
-      name: "Amoxicillin 500mg",
-      category: "Antibiotics",
-      price: "₹185",
-      type: "Rx",
-      dosage: "500mg Capsule",
-      manufacturer: "RxHealth Pharma",
-      description: "Broad-spectrum antibiotic used to treat bacterial infections.",
-      stockStatus: "In Stock at Downtown & Uptown Branch",
-      usage: "Take 1 capsule 3 times daily with food as prescribed.",
-    },
-    {
-      id: "med-2",
-      name: "Paracetamol 650mg",
-      category: "Pain Relief",
-      price: "₹90",
-      type: "OTC",
-      dosage: "650mg Tablet",
-      manufacturer: "HealthCare Ltd",
-      description: "Effective fever reducer and mild to moderate pain reliever.",
-      stockStatus: "In Stock across all branches",
-      usage: "Take 1 tablet every 6 hours as needed. Do not exceed 4g/day.",
-    },
-    {
-      id: "med-3",
-      name: "Metformin 500mg",
-      category: "Chronic Care",
-      price: "₹220",
-      type: "Rx",
-      dosage: "500mg Sustained Release",
-      manufacturer: "BioMed Labs",
-      description: "First-line medication for the treatment of type 2 diabetes.",
-      stockStatus: "Low Stock at Westside Branch",
-      usage: "Take 1 tablet daily with evening meal.",
-    },
-    {
-      id: "med-4",
-      name: "Vitamin C 1000mg",
-      category: "Vitamins",
-      price: "₹120",
-      type: "OTC",
-      dosage: "1000mg Effervescent Tablet",
-      manufacturer: "NutraLife",
-      description: "Immune support dietary supplement with bioflavonoids.",
-      stockStatus: "In Stock across all branches",
-      usage: "Dissolve 1 tablet in 200ml water daily.",
-    },
-    {
-      id: "med-5",
-      name: "Ibuprofen 400mg",
-      category: "Pain Relief",
-      price: "₹80",
-      type: "OTC",
-      dosage: "400mg Softgel",
-      manufacturer: "PainRelief Inc",
-      description: "Non-steroidal anti-inflammatory drug (NSAID) for pain & inflammation.",
-      stockStatus: "In Stock across all branches",
-      usage: "Take 1 softgel with food every 8 hours.",
-    },
-  ];
+  useEffect(() => {
+    async function fetchMedicines() {
+      try {
+        const res = await fetch("http://localhost:5001/api/medicines");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.medicines)) {
+            const formatted = data.medicines.map((m) => ({
+              id: m.id,
+              name: m.name,
+              category: m.category || "General",
+              price: typeof m.price === "number" ? m.price : parseFloat(String(m.price).replace(/[^0-9.]/g, "")) || 0,
+              type: m.prescriptionRequired ? "Rx" : "OTC",
+              dosage: m.dosage || "Standard Dose",
+              manufacturer: m.manufacturer || "Licensed Pharma",
+              description: m.description || "Healthcare medication",
+              stockStatus: m.inventories?.[0]?.quantity > 0 ? "In Stock at Nearby Branch" : "In Stock",
+              usage: "Take as directed by doctor or healthcare provider.",
+              prescriptionRequired: m.prescriptionRequired,
+            }));
+            setMedicines(formatted);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to fetch medicines from API:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchMedicines();
+  }, []);
 
   const filteredMedicines = medicines.filter((m) => {
     const matchesSearch =
       m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       m.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === "all" ? true : m.category === categoryFilter;
+    const matchesCategory = categoryFilter === "all" ? true : m.category.toLowerCase() === categoryFilter.toLowerCase();
     return matchesSearch && matchesCategory;
   });
 
@@ -120,40 +92,66 @@ export default function BrowseMedicinesView() {
       </div>
 
       {/* Medicines Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredMedicines.map((m) => (
-          <div key={m.id} className="bg-white rounded-2xl shadow-xs border border-slate-200 p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
-            <div>
-              <div className="flex justify-between items-start mb-2">
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
-                  m.type === "Rx" ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-emerald-100 text-emerald-700 border-emerald-200"
-                }`}>
-                  {m.type === "Rx" ? "Prescription Required" : "OTC Available"}
-                </span>
-                <span className="text-base font-extrabold text-slate-900">{m.price}</span>
+      {loading ? (
+        <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-xs font-semibold text-slate-500">
+          Loading medicine catalog from database...
+        </div>
+      ) : filteredMedicines.length === 0 ? (
+        <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-xs font-semibold text-slate-500">
+          No medicines found matching your search criteria.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredMedicines.map((m) => (
+            <div key={m.id} className="bg-white rounded-2xl shadow-xs border border-slate-200 p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                    m.type === "Rx" ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-emerald-100 text-emerald-700 border-emerald-200"
+                  }`}>
+                    {m.type === "Rx" ? "Prescription Required" : "OTC Available"}
+                  </span>
+                  <span className="text-base font-extrabold text-slate-900">₹{m.price.toFixed(2)}</span>
+                </div>
+
+                <h3 className="text-base font-bold text-slate-900 mt-1">{m.name}</h3>
+                <p className="text-xs text-slate-500 font-medium">{m.dosage}</p>
+                <p className="text-xs text-slate-600 mt-2 line-clamp-2">{m.description}</p>
               </div>
 
-              <h3 className="text-base font-bold text-slate-900 mt-1">{m.name}</h3>
-              <p className="text-xs text-slate-500 font-medium">{m.dosage}</p>
-              <p className="text-xs text-slate-600 mt-2 line-clamp-2">{m.description}</p>
+              <div className="mt-4 pt-3 border-t border-slate-100 space-y-3">
+                <p className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
+                  <span>📍</span> {m.stockStatus}
+                </p>
+                
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => setSelectedMedicine(m)}
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 px-3 rounded-xl transition-colors cursor-pointer"
+                  >
+                    View Medicine Details
+                  </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => onAddToCart && onAddToCart(m)}
+                      className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs py-2 px-2 rounded-xl transition-colors cursor-pointer text-center"
+                    >
+                      🛒 Add to Cart
+                    </button>
+                    <button
+                      onClick={() => onPlaceOrder && onPlaceOrder(m)}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-2 rounded-xl transition-colors cursor-pointer text-center"
+                    >
+                      ⚡ Place Order
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <div className="mt-4 pt-3 border-t border-slate-100 space-y-3">
-              <p className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
-                <span>📍</span> {m.stockStatus}
-              </p>
-              
-              {/* Action Button (Issue #22: View Details) */}
-              <button
-                onClick={() => setSelectedMedicine(m)}
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 px-3 rounded-xl transition-colors"
-              >
-                View Medicine Details
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Medicine Details Modal (Issue #22) */}
       {selectedMedicine && (
@@ -169,7 +167,7 @@ export default function BrowseMedicinesView() {
                 <h3 className="text-xl font-bold text-slate-900 mt-1">{selectedMedicine.name}</h3>
                 <p className="text-xs text-slate-500">{selectedMedicine.dosage} • {selectedMedicine.manufacturer}</p>
               </div>
-              <span className="text-2xl font-black text-slate-900">{selectedMedicine.price}</span>
+              <span className="text-2xl font-black text-slate-900">₹{selectedMedicine.price.toFixed(2)}</span>
             </div>
 
             <div className="space-y-3 text-xs text-slate-700">
@@ -195,13 +193,35 @@ export default function BrowseMedicinesView() {
               )}
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
               <button
                 onClick={() => setSelectedMedicine(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200"
+                className="px-4 py-2.5 text-xs font-semibold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 cursor-pointer"
               >
                 Close
               </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (onAddToCart) onAddToCart(selectedMedicine);
+                    setSelectedMedicine(null);
+                  }}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold rounded-xl transition cursor-pointer"
+                >
+                  🛒 Add to Cart
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (onPlaceOrder) onPlaceOrder(selectedMedicine);
+                    setSelectedMedicine(null);
+                  }}
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer"
+                >
+                  ⚡ Place Order
+                </button>
+              </div>
             </div>
           </div>
         </div>

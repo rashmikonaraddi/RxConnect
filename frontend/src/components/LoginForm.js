@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Input from "./Input";
 
@@ -27,7 +29,63 @@ const roleConfig = {
 };
 
 export default function LoginForm({ role }) {
-  const config = roleConfig[role];
+  const router = useRouter();
+  const config = roleConfig[role] || roleConfig.Customer;
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("http://localhost:5001/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          role,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Authentication failed.");
+      }
+
+      if (typeof window !== "undefined") {
+        if (data.token) {
+          localStorage.setItem("rxconnect_token", data.token);
+        }
+        if (data.user) {
+          localStorage.setItem("rxconnect_user", JSON.stringify(data.user));
+        }
+      }
+
+      const defaultRedirect =
+        role === "Admin"
+          ? "/admin"
+          : role === "Pharmacist"
+          ? "/pharmacist"
+          : role === "Delivery Partner"
+          ? "/delivery"
+          : "/customer";
+
+      router.push(data.redirectTo || defaultRedirect);
+    } catch (err) {
+      setError(err.message || "Failed to log in. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-md overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-2xl">
@@ -50,7 +108,7 @@ export default function LoginForm({ role }) {
       </div>
 
       {/* Body */}
-      <div className="p-8">
+      <form onSubmit={handleSubmit} className="p-8">
 
         <h2 className="text-2xl font-bold text-gray-800">
           {role}
@@ -60,16 +118,28 @@ export default function LoginForm({ role }) {
           {config.subtitle}
         </p>
 
+        {error && (
+          <div className="mb-4 rounded-xl bg-red-50 p-3.5 border border-red-200 text-xs font-semibold text-red-600">
+            {error}
+          </div>
+        )}
+
         <Input
           label="Email Address"
           type="email"
           placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
         />
 
         <Input
           label="Password"
           type="password"
           placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
         />
 
         <div className="mb-6 flex items-center justify-between">
@@ -85,13 +155,15 @@ export default function LoginForm({ role }) {
 
           </label>
 
-          <button className="text-sm text-blue-600 hover:underline">
+          <button type="button" className="text-sm text-blue-600 hover:underline">
             Forgot Password?
           </button>
 
         </div>
 
         <button
+          type="submit"
+          disabled={loading}
           className="
             w-full
             rounded-xl
@@ -103,9 +175,10 @@ export default function LoginForm({ role }) {
             transition-all
             duration-300
             hover:bg-blue-700
+            disabled:opacity-50
           "
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
 
         <div className="my-6 flex items-center">
@@ -170,7 +243,7 @@ export default function LoginForm({ role }) {
           </p>
         )}
 
-      </div>
+      </form>
 
     </div>
   );

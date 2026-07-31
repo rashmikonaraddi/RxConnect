@@ -1,4 +1,80 @@
+"use client";
+
+import { useState, useEffect } from "react";
+
 export default function DashboardOverview({ onNavigateToPrescriptions }) {
+  const [stats, setStats] = useState({
+    activePrescriptions: 0,
+    activeDeliveries: 0,
+    savedPharmacies: 0,
+  });
+  const [recentOrder, setRecentOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
+      const headers = { Authorization: token ? `Bearer ${token}` : "" };
+
+      try {
+        const [rxRes, ordersRes, branchesRes] = await Promise.all([
+          fetch("http://localhost:5001/api/prescriptions", { headers }).catch(() => null),
+          fetch("http://localhost:5001/api/orders", { headers }).catch(() => null),
+          fetch("http://localhost:5001/api/branches", { headers }).catch(() => null),
+        ]);
+
+        let rxCount = 0;
+        if (rxRes && rxRes.ok) {
+          const rxData = await rxRes.json();
+          if (rxData.success && Array.isArray(rxData.prescriptions)) {
+            rxCount = rxData.prescriptions.length;
+          }
+        }
+
+        let ordersList = [];
+        let activeOrdersCount = 0;
+        if (ordersRes && ordersRes.ok) {
+          const ordersData = await ordersRes.json();
+          if (ordersData.success && Array.isArray(ordersData.orders)) {
+            ordersList = ordersData.orders;
+            activeOrdersCount = ordersList.filter((o) =>
+              ["PLACED", "VERIFIED", "PACKED", "OUT_FOR_DELIVERY"].includes(o.status)
+            ).length;
+          }
+        }
+
+        let branchCount = 0;
+        if (branchesRes && branchesRes.ok) {
+          const branchData = await branchesRes.json();
+          if (branchData.success && Array.isArray(branchData.branches)) {
+            branchCount = branchData.branches.length;
+          }
+        }
+
+        setStats({
+          activePrescriptions: rxCount,
+          activeDeliveries: activeOrdersCount,
+          savedPharmacies: branchCount,
+        });
+
+        if (ordersList.length > 0) {
+          setRecentOrder(ordersList[0]);
+        }
+      } catch (err) {
+        console.warn("Failed to load dashboard metrics from backend API:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDashboardData();
+  }, []);
+
+  const formatItemsSummary = (items) => {
+    if (!items || !items.length) return "No items listed";
+    return items.map((i) => `${i.medicineName || i.name} (x${i.quantity})`).join(", ");
+  };
+
   return (
     <div className="space-y-6">
       {/* Overview Header & Metrics */}
@@ -58,9 +134,11 @@ export default function DashboardOverview({ onNavigateToPrescriptions }) {
                 📜
               </div>
             </div>
-            <div className="text-4xl font-black text-[#0b193c] mt-3">4</div>
+            <div className="text-4xl font-black text-[#0b193c] mt-3">
+              {loading ? "..." : stats.activePrescriptions}
+            </div>
             <div className="mt-3 flex items-center gap-1.5 text-xs text-emerald-600 font-semibold">
-              <span>✓ 2 Refills Ready for Pickup</span>
+              <span>✓ Database Synced</span>
             </div>
           </div>
 
@@ -73,10 +151,12 @@ export default function DashboardOverview({ onNavigateToPrescriptions }) {
                 🚚
               </div>
             </div>
-            <div className="text-4xl font-black text-[#0b193c] mt-3">1</div>
+            <div className="text-4xl font-black text-[#0b193c] mt-3">
+              {loading ? "..." : stats.activeDeliveries}
+            </div>
             <div className="mt-3 flex items-center gap-1.5 text-xs text-amber-600 font-semibold">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-              <span>Out for Express Delivery</span>
+              <span>Live Order Tracking</span>
             </div>
           </div>
 
@@ -89,9 +169,11 @@ export default function DashboardOverview({ onNavigateToPrescriptions }) {
                 🏪
               </div>
             </div>
-            <div className="text-4xl font-black text-[#0b193c] mt-3">3</div>
+            <div className="text-4xl font-black text-[#0b193c] mt-3">
+              {loading ? "..." : stats.savedPharmacies}
+            </div>
             <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-500 font-semibold">
-              <span>1 Preferred Partner Nearby</span>
+              <span>Partner Network Active</span>
             </div>
           </div>
         </div>
@@ -100,24 +182,34 @@ export default function DashboardOverview({ onNavigateToPrescriptions }) {
         <div className="pt-6 border-t border-slate-100">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-bold text-slate-900">Recent Order Summary</h3>
-            <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
-              Out for Delivery
-            </span>
+            {recentOrder && (
+              <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                {recentOrder.status}
+              </span>
+            )}
           </div>
 
-          <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <span className="text-xs font-bold font-mono text-slate-500">Order #RX-88412</span>
-              <h4 className="font-bold text-slate-800 text-sm">HealthFirst Central Pharmacy - Downtown</h4>
-              <p className="text-xs text-slate-500">
-                Amoxicillin 500mg, Multivitamin Daily Formula • Total: $34.50
-              </p>
+          {recentOrder ? (
+            <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <span className="text-xs font-bold font-mono text-slate-500">Order #{recentOrder.id}</span>
+                <h4 className="font-bold text-slate-800 text-sm">
+                  {recentOrder.branch?.name || "RxConnect Partner Pharmacy"}
+                </h4>
+                <p className="text-xs text-slate-500">
+                  {formatItemsSummary(recentOrder.items)} • Total: ${recentOrder.totalAmount?.toFixed(2)}
+                </p>
+              </div>
+              <div className="text-left md:text-right">
+                <span className="text-xs font-semibold text-slate-500 block">Status</span>
+                <span className="text-sm font-extrabold text-slate-900">{recentOrder.status}</span>
+              </div>
             </div>
-            <div className="text-left md:text-right">
-              <span className="text-xs font-semibold text-slate-500 block">Est. Delivery</span>
-              <span className="text-sm font-extrabold text-slate-900">Today, 5:30 PM</span>
+          ) : (
+            <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 text-slate-500 text-xs text-center py-6">
+              No recent orders found in database. Place an order or upload a prescription to get started!
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

@@ -14,140 +14,85 @@ export default function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Admin Profile Data
-  const [user, setUser] = useState({
-    fullName: "Elena Rostova",
-    email: "elena.admin@rxconnect.com",
-    phone: "+91 98765 99999",
-    role: "ADMIN",
-    employeeId: "ADM-001",
-  });
+  const [user, setUser] = useState(null);
 
-  // Centralized State: Pharmacy Branches
-  const [branches, setBranches] = useState([
-    {
-      id: "br-101",
-      code: "BR-101",
-      name: "Central Health Pharmacy - Downtown",
-      address: "742 Evergreen Terrace, Springfield",
-      phone: "+91 98765 43210",
-      manager: "Dr. Sarah Jenkins",
-      hours: "8:00 AM - 10:00 PM",
-      fulfillmentRate: 96.5,
-      ordersToday: 68,
-      stockoutsToday: 1,
-      status: "Active",
-    },
-    {
-      id: "br-102",
-      code: "BR-102",
-      name: "MetroCare Pharmacy - Westside",
-      address: "104 Healthcare Blvd, Suite 2B",
-      phone: "+91 98765 88112",
-      manager: "Dr. Mark Thorne",
-      hours: "8:30 AM - 9:00 PM",
-      fulfillmentRate: 84.2, // Bottleneck Alert (<90%)
-      ordersToday: 42,
-      stockoutsToday: 5,
-      status: "Active",
-    },
-    {
-      id: "br-103",
-      code: "BR-103",
-      name: "RxExpress Express - North Depot",
-      address: "55 Logistics Hub, North Wing",
-      phone: "+91 98765 11990",
-      manager: "Dr. Amanda Lee",
-      hours: "9:00 AM - 8:00 PM",
-      fulfillmentRate: 98.0,
-      ordersToday: 56,
-      stockoutsToday: 0,
-      status: "Active",
-    },
-  ]);
+  // Centralized State
+  const [branches, setBranches] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [lowStockItems, setLowStockItems] = useState([]);
 
-  // Centralized State: Registered System Users
-  const [users, setUsers] = useState([
-    {
-      id: "USR-9901",
-      fullName: "Anita Sharma",
-      email: "anita.s@example.com",
-      phone: "+91 98765 33333",
-      role: "CUSTOMER",
-      branch: "—",
-      status: "Active",
-      joinedDate: "Jan 15, 2024",
-    },
-    {
-      id: "USR-9902",
-      fullName: "Dr. Sarah Jenkins",
-      email: "sarah.j@rxconnect.com",
-      phone: "+91 98765 11111",
-      role: "PHARMACIST",
-      branch: "Central Health Pharmacy - Downtown",
-      status: "Active",
-      joinedDate: "Mar 10, 2023",
-    },
-    {
-      id: "USR-9903",
-      fullName: "Rahul Verma",
-      email: "rahul.v@rxconnect.com",
-      phone: "+91 98765 22222",
-      role: "DELIVERY_PARTNER",
-      branch: "Central Health Pharmacy - Downtown",
-      status: "Active",
-      joinedDate: "Feb 01, 2024",
-    },
-    {
-      id: "USR-9904",
-      fullName: "Elena Rostova",
-      email: "elena.admin@rxconnect.com",
-      phone: "+91 98765 99999",
-      role: "ADMIN",
-      branch: "Regional HQ",
-      status: "Active",
-      joinedDate: "Jan 01, 2023",
-    },
-  ]);
-
-  // Centralized State: Low Stock Items per Branch
-  const [lowStockItems, setLowStockItems] = useState([
-    {
-      id: "LS-1",
-      name: "Metformin 500mg",
-      branch: "MetroCare Pharmacy - Westside",
-      currentStock: 4,
-      minThreshold: 20,
-      rx: true,
-    },
-    {
-      id: "LS-2",
-      name: "Amoxicillin 500mg",
-      branch: "MetroCare Pharmacy - Westside",
-      currentStock: 2,
-      minThreshold: 15,
-      rx: true,
-    },
-    {
-      id: "LS-3",
-      name: "Ibuprofen 400mg",
-      branch: "Central Health Pharmacy - Downtown",
-      currentStock: 8,
-      minThreshold: 25,
-      rx: false,
-    },
-  ]);
-
-  // Fetch Real-time Admin Overview from Backend API
+  // Fetch Real-time Admin Data from Backend APIs
   useEffect(() => {
-    async function fetchAdminOverview() {
+    async function fetchAdminData() {
+      const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
+      const headers = { Authorization: token ? `Bearer ${token}` : "" };
+
+      // 0. Profile
+      try {
+        const storedUser = localStorage.getItem("rxconnect_user");
+        if (storedUser) setUser(JSON.parse(storedUser));
+
+        const meRes = await fetch("http://localhost:5001/api/auth/me", { headers });
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          if (meData.success && meData.user) {
+            setUser(meData.user);
+            localStorage.setItem("rxconnect_user", JSON.stringify(meData.user));
+          }
+        }
+      } catch (err) {}
+
+      // 1. Branches
+      try {
+        const resBranch = await fetch("http://localhost:5001/api/admin/branches", { headers });
+        if (resBranch.ok) {
+          const jsonBranch = await resBranch.json();
+          if (jsonBranch.success && Array.isArray(jsonBranch.data)) {
+            setBranches(
+              jsonBranch.data.map((b) => ({
+                id: b.id,
+                code: b.code || `BR-${b.id.slice(0, 4).toUpperCase()}`,
+                name: b.name,
+                address: b.address || "Main Street",
+                phone: b.phone || "+91 98765 43210",
+                manager: "Dr. Pharmacy Manager",
+                hours: "8:00 AM - 10:00 PM",
+                fulfillmentRate: b.fulfillmentRate || 95.0,
+                ordersToday: b.activeOrders || 0,
+                stockoutsToday: 0,
+                status: b.isOperational !== false ? "Active" : "Maintenance",
+              }))
+            );
+          }
+        }
+      } catch (err) {}
+
+      // 2. Users
+      try {
+        const resUser = await fetch("http://localhost:5001/api/admin/users", { headers });
+        if (resUser.ok) {
+          const jsonUser = await resUser.json();
+          if (jsonUser.success && Array.isArray(jsonUser.data)) {
+            setUsers(
+              jsonUser.data.map((u) => ({
+                id: u.id,
+                fullName: u.fullName,
+                email: u.email,
+                phone: u.phone || "+91 98765 00000",
+                role: u.role,
+                branch: u.branch?.name || "—",
+                status: "Active",
+                joinedDate: u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recently",
+              }))
+            );
+          }
+        }
+      } catch (err) {}
+
+      // 3. Overview Metrics
       try {
         setIsLoading(true);
-        const res = await fetch("http://localhost:5001/api/admin/overview", {
-          headers: {
-            "x-user-id": "ADM-001",
-            "x-user-role": "ADMIN",
-          },
-        });
+        const res = await fetch("http://localhost:5001/api/admin/overview", { headers });
         if (res.ok) {
           const json = await res.json();
           if (json.success && json.data) {
@@ -155,12 +100,12 @@ export default function AdminDashboardPage() {
           }
         }
       } catch (err) {
-        console.warn("Backend API offline, using pre-seeded state fallback.");
       } finally {
         setIsLoading(false);
       }
     }
-    fetchAdminOverview();
+
+    fetchAdminData();
   }, []);
 
   // Handler: Restock Trigger
@@ -168,20 +113,20 @@ export default function AdminDashboardPage() {
     setLowStockItems(lowStockItems.filter((i) => i.id !== item.id));
   };
 
-  // Handler: Update User Role & Branch Assignment (Issue #44)
+  // Handler: Update User Role & Branch Assignment
   const handleUpdateUserRole = async (userId, newRole, assignedBranch) => {
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
       await fetch(`http://localhost:5001/api/admin/users/${userId}/role`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": "ADM-001",
-          "x-user-role": "ADMIN",
+          Authorization: token ? `Bearer ${token}` : "",
         },
         body: JSON.stringify({ role: newRole, branchId: assignedBranch }),
       });
     } catch (err) {
-      console.warn("Backend patch failed, updating local state fallback.");
+      console.warn("Backend role patch error:", err);
     }
 
     setUsers(
@@ -198,20 +143,20 @@ export default function AdminDashboardPage() {
     setUsers([newUser, ...users]);
   };
 
-  // Handler: Branch Management (Issue #45)
+  // Handler: Branch Management
   const handleAddBranch = async (newBranch) => {
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
       await fetch("http://localhost:5001/api/admin/branches", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": "ADM-001",
-          "x-user-role": "ADMIN",
+          Authorization: token ? `Bearer ${token}` : "",
         },
         body: JSON.stringify(newBranch),
       });
     } catch (err) {
-      console.warn("Backend post failed, updating local state fallback.");
+      console.warn("Backend branch creation error:", err);
     }
     setBranches([...branches, newBranch]);
   };

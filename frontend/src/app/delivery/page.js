@@ -18,156 +18,93 @@ export default function DeliveryDashboard() {
   const [modalMode, setModalMode] = useState("active");
 
   // User Profile Data
-  const [user, setUser] = useState({
-    fullName: "Alex Rivera",
-    email: "alex.rivera@rxconnect.com",
-    phone: "+91 9876543210",
-    role: "DELIVERY_PARTNER",
-    employeeId: "DEL-002",
-    vehicle: "Honda Activa 6G (KA-19-EX-1234)",
-    zone: "Downtown & Central District",
-  });
+  const [user, setUser] = useState(null);
 
   // Centralized State
-  const [availableJobs, setAvailableJobs] = useState([
-    {
-      id: "ord-1048",
-      status: "Packed",
-      pickupBranch: "Central Health Pharmacy - East Branch",
-      branchAddress: "402 Medical Drive, Suite 10",
-      branchPhone: "+91 98765 43210",
-      destination: "882 Park Avenue, Apt 12B",
-      customer: "Emily Watson",
-      customerPhone: "+91 98765 12345",
-      payout: "₹180",
-      distance: "4.1 km",
-      rxRequired: true,
-      pharmacistName: "Dr. Robert Vance",
-      notes: "Fragile medication - handle with care.",
-      items: [
-        { name: "Metformin 500mg", qty: "1 Bottle", rx: true, price: "₹220" },
-        { name: "Multivitamin Daily Plus", qty: "1 Bottle", rx: false, price: "₹145" },
-      ],
-    },
-    {
-      id: "ord-1050",
-      status: "Packed",
-      pickupBranch: "Downtown Pharmacy",
-      branchAddress: "104 Healthcare Boulevard",
-      branchPhone: "+91 98765 99000",
-      destination: "55 West End Street, House 4",
-      customer: "Michael Chang",
-      customerPhone: "+91 98765 67890",
-      payout: "₹120",
-      distance: "1.8 km",
-      rxRequired: false,
-      pharmacistName: "Dr. Sarah Jenkins",
-      items: [
-        { name: "Ibuprofen 400mg", qty: "2 Packs", rx: false, price: "₹80" },
-      ],
-    },
-  ]);
+  const [availableJobs, setAvailableJobs] = useState([]);
+  const [activeJobs, setActiveJobs] = useState([]);
+  const [historyJobs, setHistoryJobs] = useState([]);
 
-  const [activeJobs, setActiveJobs] = useState([
-    {
-      id: "ord-1042",
-      status: "Out for Delivery",
-      pickupBranch: "Downtown Pharmacy",
-      branchAddress: "104 Healthcare Boulevard",
-      branchPhone: "+91 98765 99000",
-      destination: "123 Main St, Apt 4B",
-      customer: "John Doe",
-      customerPhone: "+91 98765 23456",
-      payout: "₹150",
-      distance: "2.5 km",
-      rxRequired: true,
-      pharmacistName: "Dr. Sarah Jenkins",
-      notes: "Ring doorbell twice. Customer is expecting order.",
-      items: [
-        { name: "Amoxicillin 500mg", qty: "1 Box", rx: true, price: "₹185" },
-        { name: "Vitamin C 1000mg Effervescent", qty: "2 Packs", rx: false, price: "₹120" },
-      ],
-    },
-  ]);
-
-  const [historyJobs, setHistoryJobs] = useState([
-    {
-      id: "ord-0998",
-      status: "Delivered",
-      pickupBranch: "Downtown Pharmacy",
-      branchAddress: "104 Healthcare Boulevard",
-      destination: "789 Pine Rd, Apt 2",
-      customer: "David Miller",
-      customerPhone: "+91 98765 65432",
-      payout: "₹160",
-      distance: "2.1 km",
-      rxRequired: true,
-      time: "10:30 AM Today",
-      items: [
-        { name: "Lisinopril 10mg", qty: "1 Bottle", rx: true, price: "₹150" },
-      ],
-    },
-  ]);
-
-  // Fetch Delivery Data from Backend APIs (Issues #39, #40, #41, #42)
+  // Fetch Delivery Data from Backend APIs
   useEffect(() => {
-    async function fetchDeliveryData() {
-      const authHeaders = {
-        "x-user-id": "DEL-002",
-        "x-user-role": "DELIVERY_PARTNER",
-      };
+    async function loadDriverAndJobs() {
+      const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
+      const headers = { Authorization: token ? `Bearer ${token}` : "" };
+
+      // 0. Driver Profile
+      try {
+        const storedUser = localStorage.getItem("rxconnect_user");
+        if (storedUser) setUser(JSON.parse(storedUser));
+
+        const meRes = await fetch("http://localhost:5001/api/auth/me", { headers });
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          if (meData.success && meData.user) {
+            setUser(meData.user);
+            localStorage.setItem("rxconnect_user", JSON.stringify(meData.user));
+          }
+        }
+      } catch (err) {}
 
       // 1. Available Jobs
       try {
-        const resAvail = await fetch("http://localhost:5001/api/delivery/available", { headers: authHeaders });
+        const resAvail = await fetch("http://localhost:5001/api/delivery/available", { headers });
         if (resAvail.ok) {
           const jsonAvail = await resAvail.json();
-          if (jsonAvail.success && jsonAvail.data && jsonAvail.data.length > 0) {
+          if (jsonAvail.success && Array.isArray(jsonAvail.data)) {
             setAvailableJobs(
               jsonAvail.data.map((j) => ({
                 id: j.id,
                 status: j.status === "PACKED" ? "Packed" : j.status,
-                pickupBranch: j.branch?.name || "Central Health Pharmacy",
-                branchAddress: j.branch?.address || "402 Medical Drive",
+                pickupBranch: j.branch?.name || "RxConnect Pharmacy",
+                branchAddress: j.branch?.address || "Medical Drive",
                 branchPhone: j.branch?.phone || "+91 98765 43210",
                 destination: j.destination,
-                customer: j.customer?.fullName || "Emily Watson",
+                customer: j.customer?.fullName || "Customer",
                 customerPhone: j.customer?.phone || "+91 98765 12345",
                 payout: `₹${j.deliveryPayout || 150}`,
-                distance: "3.2 km",
-                rxRequired: j.isPrescriptionVerified,
-                pharmacistName: "Dr. Sarah Jenkins",
+                distance: "2.5 km",
+                rxRequired: Boolean(j.isPrescriptionVerified),
+                pharmacistName: "Rx Pharmacist",
                 notes: j.notes || "Handle with care.",
-                items: j.items || [],
+                items: (j.items || []).map((i) => ({
+                  name: i.medicineName,
+                  qty: `${i.quantity} Unit(s)`,
+                  rx: i.isRx,
+                  price: `₹${i.price}`,
+                })),
               }))
             );
           }
         }
-      } catch (err) {
-        console.warn("Backend API offline, using in-memory state fallback.");
-      }
+      } catch (err) {}
 
       // 2. Active Jobs
       try {
-        const resActive = await fetch("http://localhost:5001/api/delivery/active", { headers: authHeaders });
+        const resActive = await fetch("http://localhost:5001/api/delivery/active", { headers });
         if (resActive.ok) {
           const jsonActive = await resActive.json();
-          if (jsonActive.success && jsonActive.data && jsonActive.data.length > 0) {
+          if (jsonActive.success && Array.isArray(jsonActive.data)) {
             setActiveJobs(
               jsonActive.data.map((j) => ({
                 id: j.id,
                 status: j.status === "OUT_FOR_DELIVERY" ? "Out for Delivery" : j.status === "PACKED" ? "Packed" : j.status,
-                pickupBranch: j.branch?.name || "Downtown Pharmacy",
-                branchAddress: j.branch?.address || "104 Healthcare Boulevard",
+                pickupBranch: j.branch?.name || "RxConnect Pharmacy",
+                branchAddress: j.branch?.address || "Healthcare Boulevard",
                 branchPhone: j.branch?.phone || "+91 98765 99000",
                 destination: j.destination,
-                customer: j.customer?.fullName || "John Doe",
+                customer: j.customer?.fullName || "Customer",
                 customerPhone: j.customer?.phone || "+91 98765 23456",
                 payout: `₹${j.deliveryPayout || 150}`,
                 distance: "2.5 km",
-                rxRequired: j.isPrescriptionVerified,
+                rxRequired: Boolean(j.isPrescriptionVerified),
                 notes: j.notes || "Ring doorbell twice.",
-                items: j.items || [],
+                items: (j.items || []).map((i) => ({
+                  name: i.medicineName,
+                  qty: `${i.quantity} Unit(s)`,
+                  rx: i.isRx,
+                  price: `₹${i.price}`,
+                })),
               }))
             );
           }
@@ -176,24 +113,29 @@ export default function DeliveryDashboard() {
 
       // 3. Delivery History
       try {
-        const resHist = await fetch("http://localhost:5001/api/delivery/history", { headers: authHeaders });
+        const resHist = await fetch("http://localhost:5001/api/delivery/history", { headers });
         if (resHist.ok) {
           const jsonHist = await resHist.json();
-          if (jsonHist.success && jsonHist.data && jsonHist.data.length > 0) {
+          if (jsonHist.success && Array.isArray(jsonHist.data)) {
             setHistoryJobs(
               jsonHist.data.map((j) => ({
                 id: j.id,
                 status: "Delivered",
-                pickupBranch: j.branch?.name || "Downtown Pharmacy",
-                branchAddress: j.branch?.address || "104 Healthcare Blvd",
+                pickupBranch: j.branch?.name || "RxConnect Pharmacy",
+                branchAddress: j.branch?.address || "Healthcare Blvd",
                 destination: j.destination,
-                customer: j.customer?.fullName || "David Miller",
+                customer: j.customer?.fullName || "Customer",
                 customerPhone: j.customer?.phone || "+91 98765 65432",
                 payout: `₹${j.deliveryPayout || 160}`,
                 distance: "2.1 km",
-                rxRequired: j.isPrescriptionVerified,
+                rxRequired: Boolean(j.isPrescriptionVerified),
                 time: j.deliveredAt ? new Date(j.deliveredAt).toLocaleTimeString("en-IN") + " IST" : "Today",
-                items: j.items || [],
+                items: (j.items || []).map((i) => ({
+                  name: i.medicineName,
+                  qty: `${i.quantity} Unit(s)`,
+                  rx: i.isRx,
+                  price: `₹${i.price}`,
+                })),
               }))
             );
           }
@@ -201,7 +143,7 @@ export default function DeliveryDashboard() {
       } catch (err) {}
     }
 
-    fetchDeliveryData();
+    loadDriverAndJobs();
   }, []);
 
   const showToast = (msg) => {
@@ -211,27 +153,28 @@ export default function DeliveryDashboard() {
     }, 3500);
   };
 
-  // Issue #40: Claim Job Backend Integration
+  // Claim Job Backend Integration
   const handleClaimJob = async (jobId) => {
     const jobToClaim = availableJobs.find((j) => j.id === jobId);
     if (!jobToClaim) return;
 
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
       const res = await fetch(`http://localhost:5001/api/delivery/claim/${jobId}`, {
         method: "POST",
         headers: {
-          "x-user-id": "DEL-002",
-          "x-user-role": "DELIVERY_PARTNER",
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
         },
       });
 
       const json = await res.json();
       if (!res.ok || !json.success) {
-        alert(json.message || "Failed to claim order. Hard gate safety check failed.");
+        alert(json.message || "Failed to claim order.");
         return;
       }
     } catch (err) {
-      console.warn("Backend API offline, claiming locally.");
+      console.warn("Claim job error:", err);
     }
 
     setAvailableJobs(availableJobs.filter((j) => j.id !== jobId));
@@ -239,33 +182,33 @@ export default function DeliveryDashboard() {
     showToast(`⚡ Order #${jobId} claimed! Moved to Active Deliveries.`);
   };
 
-  // Issue #41: Update Status Backend Integration
+  // Update Status Backend Integration
   const handleUpdateJobStatus = async (jobId, deliveryNote = "") => {
     const job = activeJobs.find((j) => j.id === jobId);
     if (!job) return;
 
-    const targetStatus = job.status === "Packed" ? "OUT_FOR_DELIVERY" : "DELIVERED";
+    const targetStatus = job.status === "Packed" || job.status === "PLACED" ? "OUT_FOR_DELIVERY" : "DELIVERED";
 
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("rxconnect_token") : null;
       await fetch(`http://localhost:5001/api/delivery/status/${jobId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": "DEL-002",
-          "x-user-role": "DELIVERY_PARTNER",
+          Authorization: token ? `Bearer ${token}` : "",
         },
         body: JSON.stringify({ status: targetStatus, notes: deliveryNote || job.notes }),
       });
     } catch (err) {
-      console.warn("Backend API status patch failed, updating locally.");
+      console.warn("Status update error:", err);
     }
 
-    if (job.status === "Packed") {
+    if (job.status === "Packed" || job.status === "PLACED") {
       setActiveJobs(
         activeJobs.map((j) => (j.id === jobId ? { ...j, status: "Out for Delivery" } : j))
       );
       showToast(`📦 Order #${jobId} status updated to Out for Delivery!`);
-    } else if (job.status === "Out for Delivery") {
+    } else {
       setActiveJobs(activeJobs.filter((j) => j.id !== jobId));
       setHistoryJobs([
         {
