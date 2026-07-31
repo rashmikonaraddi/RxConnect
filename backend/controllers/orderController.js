@@ -25,7 +25,23 @@ const createOrder = async (req, res) => {
       targetBranchId = firstBranch.id;
     }
 
-    const calculatedTotal = items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
+    const parsePrice = (p) => {
+      if (typeof p === "number") return p;
+      if (!p) return 0;
+      const cleaned = String(p).replace(/[^0-9.]/g, "");
+      return parseFloat(cleaned) || 0;
+    };
+
+    const itemsParsed = items.map((i) => ({
+      medicineName: i.medicineName || i.name,
+      quantity: i.quantity || 1,
+      price: parsePrice(i.price),
+      isRx: Boolean(i.isRx || i.type === "Rx" || i.prescriptionRequired),
+    }));
+
+    const calculatedTotal = itemsParsed.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const deliveryFee = calculatedTotal > 0 ? 40 : 0;
+    const finalTotal = calculatedTotal + deliveryFee;
     const orderId = `RX-${Math.floor(10000 + Math.random() * 90000)}`;
 
     const newOrder = await prisma.order.create({
@@ -33,19 +49,14 @@ const createOrder = async (req, res) => {
         id: orderId,
         customerId,
         branchId: targetBranchId,
-        totalAmount: calculatedTotal,
+        totalAmount: finalTotal,
         destination,
         deliveryNotes: deliveryNotes || null,
         paymentMethod: paymentMethod || "CARD",
         paymentStatus: paymentMethod === "CASH" ? "PENDING_COD" : "PAID",
         status: "PLACED",
         items: {
-          create: items.map((i) => ({
-            medicineName: i.medicineName || i.name,
-            quantity: i.quantity || 1,
-            price: i.price || 0,
-            isRx: Boolean(i.isRx || i.type === "Rx" || i.prescriptionRequired),
-          })),
+          create: itemsParsed,
         },
       },
       include: { items: true, branch: true, customer: { select: { id: true, fullName: true, email: true } } },

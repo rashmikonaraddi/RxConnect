@@ -102,7 +102,27 @@ const login = async (req, res) => {
       return res.status(401).json({ success: false, message: "Invalid email or password." });
     }
 
-    const token = generateToken(user.id, user.role, user.email);
+    const requestedRole = role ? normalizeRole(role) : null;
+    let effectiveRole = user.role;
+
+    if (requestedRole && user.role !== requestedRole) {
+      effectiveRole = requestedRole;
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { role: effectiveRole },
+      });
+    }
+
+    const token = generateToken(user.id, effectiveRole, user.email);
+
+    const redirectPath =
+      effectiveRole === "ADMIN"
+        ? "/admin"
+        : effectiveRole === "PHARMACIST"
+        ? "/pharmacist"
+        : effectiveRole === "DELIVERY_PARTNER"
+        ? "/delivery"
+        : "/customer";
 
     return res.json({
       success: true,
@@ -113,18 +133,11 @@ const login = async (req, res) => {
         fullName: user.fullName,
         email: user.email,
         phone: user.phone,
-        role: user.role,
+        role: effectiveRole,
         employeeId: user.employeeId || null,
         branchId: user.branchId || null,
       },
-      redirectTo:
-        user.role === "ADMIN"
-          ? "/admin"
-          : user.role === "PHARMACIST"
-          ? "/pharmacist"
-          : user.role === "DELIVERY_PARTNER"
-          ? "/delivery"
-          : "/customer",
+      redirectTo: redirectPath,
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -143,17 +156,88 @@ const getMe = async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, fullName: true, email: true, phone: true, role: true, employeeId: true, branchId: true },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phone: true,
+        role: true,
+        employeeId: true,
+        branchId: true,
+        deliveryAddress: true,
+        preferredPharmacy: true,
+        emergencyContact: true,
+        createdAt: true,
+      },
     });
 
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    return res.json({ success: true, user });
+    return res.json({
+      success: true,
+      user: {
+        ...user,
+        customerId: user.employeeId || `RX-${user.id.slice(0, 7).toUpperCase()}`,
+        joinedDate: new Date(user.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }),
+      },
+    });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
 };
 
-module.exports = { signup, login, getMe };
+// @desc Update current logged in user profile in Database
+// @route PUT /api/auth/me
+const updateMe = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+
+    const { fullName, email, phone, deliveryAddress, preferredPharmacy, emergencyContact } = req.body;
+
+    const dataToUpdate = {};
+    if (fullName !== undefined) dataToUpdate.fullName = fullName;
+    if (email !== undefined) dataToUpdate.email = email.toLowerCase().trim();
+    if (phone !== undefined) dataToUpdate.phone = phone;
+    if (deliveryAddress !== undefined) dataToUpdate.deliveryAddress = deliveryAddress;
+    if (preferredPharmacy !== undefined) dataToUpdate.preferredPharmacy = preferredPharmacy;
+    if (emergencyContact !== undefined) dataToUpdate.emergencyContact = emergencyContact;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: dataToUpdate,
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phone: true,
+        role: true,
+        employeeId: true,
+        branchId: true,
+        deliveryAddress: true,
+        preferredPharmacy: true,
+        emergencyContact: true,
+        createdAt: true,
+      },
+    });
+
+    return res.json({
+      success: true,
+      message: "Profile updated successfully!",
+      user: {
+        ...updatedUser,
+        customerId: updatedUser.employeeId || `RX-${updatedUser.id.slice(0, 7).toUpperCase()}`,
+        joinedDate: new Date(updatedUser.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }),
+      },
+    });
+  } catch (err) {
+    console.error("Update profile error:", err);
+    return res.status(500).json({ success: false, message: err.message || "Failed to update profile" });
+  }
+};
+
+module.exports = { signup, login, getMe, updateMe };

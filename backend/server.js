@@ -10,6 +10,7 @@ const orderRoutes = require("./routes/orderRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const deliveryRoutes = require("./routes/deliveryRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const inventoryRoutes = require("./routes/inventoryRoutes");
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use("/api", medicineRoutes); // /api/medicines and /api/branches
 app.use("/api/orders", orderRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/delivery", deliveryRoutes);
+app.use("/api/inventory", inventoryRoutes);
 
 // Admin Module Routes (Issues #43, #44, #45, #46)
 app.use("/api/admin", adminRoutes);

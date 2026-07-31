@@ -12,8 +12,9 @@ const uploadPrescription = async (req, res) => {
     const { doctorName, notes, imageUrl } = req.body;
 
     let finalImageUrl = imageUrl;
-    if (req.file) {
-      finalImageUrl = `/uploads/${req.file.filename}`;
+    const fileObj = req.file || (req.files && req.files[0]);
+    if (fileObj) {
+      finalImageUrl = `/uploads/${fileObj.filename}`;
     }
 
     if (!finalImageUrl) {

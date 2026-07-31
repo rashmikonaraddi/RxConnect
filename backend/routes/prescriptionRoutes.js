@@ -27,7 +27,7 @@ const upload = multer({ storage });
 router.use(protect);
 
 // Upload prescription (Customer)
-router.post("/upload", upload.single("prescriptionFile"), uploadPrescription);
+router.post("/upload", upload.any(), uploadPrescription);
 
 // Get prescriptions list (Customer / Pharmacist queue)
 router.get("/", getPrescriptions);
