@@ -9,6 +9,7 @@ const medicineRoutes = require("./routes/medicineRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const deliveryRoutes = require("./routes/deliveryRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
@@ -43,25 +44,10 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/delivery", deliveryRoutes);
 
-// 404 Handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
-});
+// Admin Module Routes (Issues #43, #44, #45, #46)
+app.use("/api/admin", adminRoutes);
 
-// Global Error Handler
-app.use((err, req, res, next) => {
-  console.error(err);
-
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-  });
-});
-
-// Start Server
+// Using Port 5001 to avoid Windows System Service port 5000 conflict
 const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, "0.0.0.0", () => {

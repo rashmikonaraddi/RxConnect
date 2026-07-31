@@ -16,39 +16,24 @@ enum Role {
   ADMIN
 }
 
-enum PrescriptionStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum OrderStatus {
-  PLACED
-  VERIFIED
-  PACKED
-  OUT_FOR_DELIVERY
-  DELIVERED
-  REJECTED
-  CANCELLED
-}
-
 model User {
-  id         String   @id @default(uuid())
-  fullName   String
-  email      String   @unique
-  phone      String?
-  password   String
-  role       Role     @default(CUSTOMER)
-  employeeId String?
-  vehicle    String?
-  isOnDuty   Boolean  @default(true)
-  branchId   String?
-  branch     Branch?  @relation(fields: [branchId], references: [id])
+  id           String      @id @default(cuid())
+  fullName     String
+  email        String      @unique
+  password     String
+  phone        String?     @unique
+  role         Role        @default(CUSTOMER)
+  employeeId   String?     @unique
+  vehicle      String?
+  isOnDuty     Boolean     @default(false)
 
-  prescriptions  Prescription[]
-  customerOrders Order[]        @relation("CustomerOrders")
-  deliveryJobs   Order[]        @relation("DeliveryPartnerJobs")
-  notifications  Notification[]
+  branchId String?
+  branch   Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  prescriptions Prescription[]
+
+  customerOrders Order[] @relation("CustomerOrders")
+  deliveryOrders Order[] @relation("DeliveryPartnerOrders")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -57,24 +42,8 @@ model User {
   @@index([branchId])
 }
 
-model Branch {
-  id              String   @id @default(uuid())
-  code            String?  @unique
-  name            String
-  address         String
-  phone           String
-  fulfillmentRate Float    @default(95.0)
-
-  users       User[]
-  orders      Order[]
-  inventories Inventory[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 model Medicine {
-  id                   String      @id @default(uuid())
+  id                   String      @id @default(cuid())
   name                 String
   description          String?
   manufacturer         String
@@ -84,22 +53,176 @@ model Medicine {
   imageUrl             String?
   prescriptionRequired Boolean     @default(false)
   inventories          Inventory[]
-  orderItems           OrderItem[]
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+}
+
+  enum PrescriptionStatus {
+    PENDING
+    APPROVED
+    REJECTED
+  }
+
+  enum PrescriptionStatus {
+    PENDING
+    APPROVED
+    REJECTED
+  }
+
+  model Prescription {
+    id         String             @id @default(cuid())
+    imageUrl   String
+    status     PrescriptionStatus @default(PENDING)
+    uploadedAt DateTime           @default(now())
+
+    userId String
+    user   User   @relation(fields: [userId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+  }
+
+  enum OrderStatus {
+    PLACED
+    VERIFIED
+    PACKED
+    OUT_FOR_DELIVERY
+    DELIVERED
+    REJECTED
+    CANCELLED
+  }
+
+  model Order {
+    id     String      @id @default(cuid())
+    status OrderStatus @default(PLACED)
+
+    totalAmount    Float
+    deliveryPayout Float @default(150.0)
+
+    destination   String
+    deliveryNotes String?
+
+    isPrescriptionVerified Boolean @default(false)
+
+    packedAt    DateTime?
+    deliveredAt DateTime?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    branchId String
+    branch   Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+    customerId String
+    customer   User   @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: Restrict)
+
+    deliveryPartnerId String?
+    deliveryPartner   User?   @relation("DeliveryPartnerOrders", fields: [deliveryPartnerId], references: [id], onDelete: SetNull)
+
+    items         OrderItem[]
+    prescriptions Prescription[]
+
+    @@index([branchId, status])
+    @@index([deliveryPartnerId])
+  }
+
+  model OrderItem {
+    id           String    @id @default(cuid())
+    orderId      String
+    order        Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+    medicineId   String?
+    medicine     Medicine? @relation(fields: [medicineId], references: [id])
+    medicineName String
+    quantity     Int
+    price        Float
+    isRx         Boolean @default(false)
+  }
+
+  model Branch {
+    id              String @id @default(cuid())
+    code            String? @unique
+    name            String
+    address         String
+    phone           String
+    fulfillmentRate Float  @default(100.0)
+
+    users       User[]
+    orders      Order[]
+    inventories Inventory[]
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+
+    @@index([name])
+  }
+
+  model Inventory {
+    id String @id @default(cuid())
+
+    quantity  Int
+    threshold Int
+
+    medicineId String
+    medicine   Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+
+    branchId String
+    branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([medicineId, branchId])
+    @@index([branchId])
+    @@index([medicineId])
+  }
+
+  isPrescriptionVerified Boolean @default(false)
+
+  packedAt    DateTime?
+  deliveredAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  customerId String
+  customer   User   @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: Restrict)
+
+  deliveryPartnerId String?
+  deliveryPartner   User?   @relation("DeliveryPartnerOrders", fields: [deliveryPartnerId], references: [id], onDelete: SetNull)
+
+  @@index([branchId, status])
+  @@index([deliveryPartnerId])
+}
+
+model Branch {
+  id              String @id @default(cuid())
+  name            String
+  address         String
+  phone           String
+  fulfillmentRate Float  @default(100.0)
+
+  users       User[]
+  orders      Order[]
+  inventories Inventory[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([name])
 }
 
 model Inventory {
-  id        String   @id @default(uuid())
+  id String @id @default(cuid())
+
   quantity  Int
-  threshold Int      @default(10)
+  threshold Int
 
   medicineId String
   medicine   Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
 
   branchId String
-  branch   Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -107,78 +230,5 @@ model Inventory {
   @@unique([medicineId, branchId])
   @@index([branchId])
   @@index([medicineId])
-}
-
-model Prescription {
-  id              String             @id @default(uuid())
-  imageUrl        String
-  doctorName      String?
-  notes           String?
-  status          PrescriptionStatus @default(PENDING)
-  rejectionReason String?
-  uploadedAt      DateTime           @default(now())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  orderId String?
-  order   Order?  @relation(fields: [orderId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Order {
-  id                     String      @id @default(uuid())
-  branchId               String
-  branch                 Branch      @relation(fields: [branchId], references: [id])
-  customerId             String
-  customer               User        @relation("CustomerOrders", fields: [customerId], references: [id])
-  deliveryPartnerId      String?
-  deliveryPartner        User?       @relation("DeliveryPartnerJobs", fields: [deliveryPartnerId], references: [id])
-
-  status                 OrderStatus @default(PLACED)
-  totalAmount            Float
-  deliveryPayout         Float       @default(150.0)
-  destination            String
-  deliveryNotes          String?
-  isPrescriptionVerified Boolean     @default(false)
-  paymentStatus          String      @default("PENDING")
-  paymentMethod          String?     @default("CARD")
-
-  packedAt    DateTime?
-  deliveredAt DateTime?
-
-  items         OrderItem[]
-  prescriptions Prescription[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model OrderItem {
-  id           String    @id @default(uuid())
-  orderId      String
-  order        Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  medicineId   String?
-  medicine     Medicine? @relation(fields: [medicineId], references: [id])
-  medicineName String
-  quantity     Int
-  price        Float
-  isRx         Boolean   @default(false)
-}
-
-model Notification {
-  id        String   @id @default(uuid())
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      Role?
-  branchId  String?
-  title     String
-  message   String
-  type      String   @default("INFO")
-  isRead    Boolean  @default(false)
-  link      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+>>>>>>> 012945a6a9159b59bebba8e5b2ec12383eb5d0c8
 }
