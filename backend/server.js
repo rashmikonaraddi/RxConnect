@@ -15,12 +15,14 @@ const inventoryRoutes = require("./routes/inventoryRoutes");
 const app = express();
 
 // Middleware
-app.use(
-  cors({
-    origin: "http://localhost:3000", // Next.js frontend
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: process.env.NODE_ENV === "production"
+    ? process.env.FRONTEND_URL || "http://localhost:3000"
+    : true,
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
