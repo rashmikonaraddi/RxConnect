@@ -2,10 +2,10 @@ import Link from "next/link";
 
 export default function RoleCard({ role, description, link }) {
   const icons = {
-    Customer: "👤",
-    Pharmacist: "💊",
-    "Delivery Partner": "🚚",
-    Admin: "⚙️",
+    Customer: "",
+    Pharmacist: "",
+    "Delivery Partner": "",
+    Admin: "🏥",
   };
 
   const colors = {

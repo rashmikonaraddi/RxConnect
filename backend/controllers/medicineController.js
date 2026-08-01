@@ -1,7 +1,5 @@
 const prisma = require("../config/db");
 
-// @desc Get medicines from Database with search and category filtering
-// @route GET /api/medicines
 const getMedicines = async (req, res) => {
   try {
     const { search, category } = req.query;
@@ -34,8 +32,6 @@ const getMedicines = async (req, res) => {
   }
 };
 
-// @desc Get nearby branches from Database
-// @route GET /api/branches
 const getBranches = async (req, res) => {
   try {
     const branches = await prisma.branch.findMany({

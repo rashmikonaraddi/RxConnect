@@ -1,7 +1,5 @@
 const prisma = require("../config/db");
 
-// @desc Get branch inventory levels from Database
-// @route GET /api/inventory
 const getInventory = async (req, res) => {
   try {
     const { branchId, search } = req.query;
@@ -36,8 +34,6 @@ const getInventory = async (req, res) => {
   }
 };
 
-// @desc Restock medicine quantity for a branch in Database
-// @route POST /api/inventory/restock
 const restockInventory = async (req, res) => {
   try {
     const { inventoryId, medicineId, branchId, amount } = req.body;
@@ -82,8 +78,6 @@ const restockInventory = async (req, res) => {
   }
 };
 
-// @desc Get low stock items across branches
-// @route GET /api/inventory/low-stock
 const getLowStockAlerts = async (req, res) => {
   try {
     const items = await prisma.inventory.findMany({

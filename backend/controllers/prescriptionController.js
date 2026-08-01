@@ -1,8 +1,6 @@
 const prisma = require("../config/db");
 const { createNotification } = require("../services/notificationService");
 
-// @desc Upload new prescription (Stored in Database)
-// @route POST /api/prescriptions/upload
 const uploadPrescription = async (req, res) => {
   try {
     const userId = req.user?.id || req.body.userId;
@@ -54,8 +52,6 @@ const uploadPrescription = async (req, res) => {
   }
 };
 
-// @desc Get prescriptions from Database (Filtered for customer or pharmacist queue)
-// @route GET /api/prescriptions
 const getPrescriptions = async (req, res) => {
   try {
     const role = req.user?.role || "PHARMACIST";
@@ -88,8 +84,6 @@ const getPrescriptions = async (req, res) => {
   }
 };
 
-// @desc Update prescription status in Database (Pharmacist approve/reject with reason)
-// @route PATCH /api/prescriptions/:id/status
 const updatePrescriptionStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -115,7 +109,7 @@ const updatePrescriptionStatus = async (req, res) => {
     await createNotification({
       userId: updated.userId,
       role: "CUSTOMER",
-      title: nextStatus === "APPROVED" ? "Prescription Approved ✓" : "Prescription Rejected ❌",
+      title: nextStatus === "APPROVED" ? "Prescription Approved" : "Prescription Rejected",
       message: nextStatus === "APPROVED"
         ? `Your prescription has been approved by the pharmacist. You can now order prescription items!`
         : `Your prescription was rejected. Reason: ${finalReason}`,

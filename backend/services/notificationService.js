@@ -1,8 +1,5 @@
 const prisma = require("../config/db");
 
-/**
- * Log an in-app notification for a targeted user, role, or branch in Database
- */
 const createNotification = async ({ userId = null, role = null, branchId = null, title, message, type = "INFO", link = null }) => {
   try {
     const notification = await prisma.notification.create({
@@ -24,9 +21,6 @@ const createNotification = async ({ userId = null, role = null, branchId = null,
   }
 };
 
-/**
- * Fetch notifications matching user ID, role, or branch ID from Database
- */
 const getNotificationsForUser = async ({ userId, role, branchId }) => {
   try {
     const whereOr = [];
@@ -46,9 +40,6 @@ const getNotificationsForUser = async ({ userId, role, branchId }) => {
   }
 };
 
-/**
- * Mark a notification as read in Database
- */
 const markNotificationAsRead = async (id) => {
   try {
     const updated = await prisma.notification.update({

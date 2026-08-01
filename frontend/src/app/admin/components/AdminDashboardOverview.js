@@ -30,7 +30,7 @@ export default function AdminDashboardOverview({
       {restockAlert && (
         <div className="bg-emerald-900 text-emerald-100 p-4 rounded-xl shadow-lg border border-emerald-700 text-xs font-bold flex items-center justify-between animate-in fade-in">
           <span className="flex items-center gap-2">
-            <span>✅</span> {restockAlert}
+            <span></span> {restockAlert}
           </span>
           <span className="text-[10px] bg-emerald-800 px-2 py-1 rounded">Supplier Notified</span>
         </div>
@@ -187,7 +187,7 @@ export default function AdminDashboardOverview({
                     onClick={() => handleRestock(item)}
                     className="text-xs bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-lg transition-colors shadow-xs shrink-0 self-end sm:self-center"
                   >
-                    📦 Restock Branch
+                    Restock Branch
                   </button>
                 </div>
               ))}

@@ -110,7 +110,7 @@ export default function BranchManagementView({ branches = [], onAddBranch, onUpd
                   <span>📞</span> {b.phone}
                 </p>
                 <p className="flex items-center gap-1.5">
-                  <span>👤</span> Manager: <span className="font-bold text-slate-800">{b.manager}</span>
+                  <span></span> Manager: <span className="font-bold text-slate-800">{b.manager}</span>
                 </p>
                 <p className="flex items-center gap-1.5 text-slate-500">
                   <span>🕒</span> {b.hours}

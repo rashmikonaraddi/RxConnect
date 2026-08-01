@@ -148,7 +148,7 @@ export default function DashboardOverview({ onNavigateToPrescriptions }) {
                 Active Delivery
               </span>
               <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
-                🚚
+                
               </div>
             </div>
             <div className="text-4xl font-black text-[#0b193c] mt-3">

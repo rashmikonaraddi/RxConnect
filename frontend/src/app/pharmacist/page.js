@@ -176,7 +176,7 @@ export default function PharmacistDashboardPage() {
           </div>
 
           <div className="hidden sm:flex items-center gap-2 bg-blue-50 text-blue-900 px-3 py-1.5 rounded-full text-xs font-bold border border-blue-200">
-            <span>💊 Licensed Pharmacist Queue</span>
+            <span>Licensed Pharmacist Queue</span>
           </div>
         </div>
       </div>
@@ -237,12 +237,12 @@ export default function PharmacistDashboardPage() {
                         </p>
 
                         <p className="text-xs text-slate-500 bg-white p-2.5 rounded-xl border border-slate-200 mt-2">
-                          💬 Notes: {rx.notes}
+                          Notes: {rx.notes}
                         </p>
 
                         {rx.status === "REJECTED" && rx.rejectionReason && (
                           <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-semibold mt-2">
-                            ❌ Rejection Reason: {rx.rejectionReason}
+                            Rejection Reason: {rx.rejectionReason}
                           </div>
                         )}
                       </div>

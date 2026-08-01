@@ -80,7 +80,7 @@ export default function BrowseMedicines() {
             {/* Dummy Image */}
             <div className="flex h-40 items-center justify-center bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-100">
               <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-white text-5xl shadow-md ring-1 ring-slate-100">
-                💊
+                
               </div>
             </div>
 

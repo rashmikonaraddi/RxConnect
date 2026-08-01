@@ -66,7 +66,7 @@ export default function MedicineManagementView({ branches = [] }) {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast(`✅ Medicine '${formData.name}' successfully added to database!`);
+        showToast(`Medicine '${formData.name}' successfully added to database!`);
         setShowAddModal(false);
         setFormData({
           name: "",
@@ -126,7 +126,7 @@ export default function MedicineManagementView({ branches = [] }) {
           onClick={() => setShowAddModal(true)}
           className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-md flex items-center gap-2 cursor-pointer hover:scale-105"
         >
-          <span>💊 Add New Medicine</span>
+          <span>Add New Medicine</span>
         </button>
       </div>
 

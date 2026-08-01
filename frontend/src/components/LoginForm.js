@@ -7,22 +7,22 @@ import Input from "./Input";
 
 const roleConfig = {
   Customer: {
-    icon: "👤",
+    icon: "",
     title: "Welcome Back",
     subtitle: "Sign in to manage your medicines, prescriptions and orders.",
   },
   Pharmacist: {
-    icon: "💊",
+    icon: "",
     title: "Pharmacy Portal",
     subtitle: "Manage inventory, prescriptions and pharmacy operations.",
   },
   "Delivery Partner": {
-    icon: "🚚",
+    icon: "",
     title: "Delivery Portal",
     subtitle: "Track deliveries and manage assigned orders.",
   },
   Admin: {
-    icon: "⚙️",
+    icon: "",
     title: "Admin Portal",
     subtitle: "Manage users and monitor the platform securely.",
   },

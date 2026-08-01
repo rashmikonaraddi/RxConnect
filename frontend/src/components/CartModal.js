@@ -90,7 +90,7 @@ export default function CartModal({ cart, userAddress, onUpdateQty, onRemoveItem
           </div>
         ) : cart.length === 0 ? (
           <div className="p-12 text-center space-y-3">
-            <span className="text-4xl">🛍️</span>
+            <span className="text-4xl">�</span>
             <p className="text-base font-bold text-slate-800">Your cart is empty</p>
             <p className="text-xs text-slate-500">Browse our medicine catalog to add OTC items or upload your prescription.</p>
             <button
@@ -217,7 +217,7 @@ export default function CartModal({ cart, userAddress, onUpdateQty, onRemoveItem
 
               {/* Payment Gateway Placeholder Note */}
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-[11px] text-slate-500 flex items-center gap-2">
-                <span>🔒</span>
+                <span></span>
                 <span>
                   <strong>Secure Gateway Placeholder:</strong> Real payments sandbox active. Selected method:{" "}
                   <strong className="text-slate-800">{paymentMethod}</strong>.

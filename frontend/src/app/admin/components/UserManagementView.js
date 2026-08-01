@@ -194,7 +194,7 @@ export default function UserManagementView({ users = [], branches = [], onUpdate
                         onClick={() => handleOpenEditRole(u)}
                         className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3 py-1.5 rounded-lg border border-slate-300 transition-colors"
                       >
-                        ⚙️ Change Role
+                        Change Role
                       </button>
                     </td>
                   </tr>

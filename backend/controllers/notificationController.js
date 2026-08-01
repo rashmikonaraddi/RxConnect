@@ -4,8 +4,6 @@ const {
 	markNotificationAsRead,
 } = require("../services/notificationService");
 
-// @desc Get notifications for the logged-in user/role (merged)
-// @route GET /api/notifications
 const getNotifications = async (req, res) => {
 	try {
 		const userId = req.user?.id ?? null;
@@ -34,8 +32,6 @@ const getNotifications = async (req, res) => {
 	}
 };
 
-// @desc Mark single notification as read
-// @route PATCH /api/notifications/:id/read
 const markAsRead = async (req, res) => {
 	try {
 		const { id } = req.params;
@@ -54,8 +50,6 @@ const markAsRead = async (req, res) => {
 	}
 };
 
-// @desc Mark all notifications as read
-// @route PATCH /api/notifications/read-all
 const markAllAsRead = async (req, res) => {
 	try {
 		const userId = req.user?.id;
@@ -73,8 +67,6 @@ const markAllAsRead = async (req, res) => {
 	}
 };
 
-// @desc Create a notification
-// @route POST /api/notifications
 const createNotification = async (req, res) => {
 	try {
 		const { title, message, type, userId, role, branchId, link } = req.body;

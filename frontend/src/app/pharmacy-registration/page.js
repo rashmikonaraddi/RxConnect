@@ -92,7 +92,7 @@ export default function PharmacyRegistration() {
       <div className="w-full max-w-2xl rounded-3xl bg-white shadow-2xl overflow-hidden border border-slate-100">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-teal-600 px-8 py-8 text-center text-white">
-          <div className="text-5xl mb-3">💊</div>
+          <div className="text-5xl mb-3"></div>
           <h1 className="text-3xl font-extrabold">Pharmacy Partner Registration</h1>
           <p className="text-blue-100 text-sm mt-1">
             Register your licensed pharmacy branch & head pharmacist portal on RxConnect

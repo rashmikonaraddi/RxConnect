@@ -179,7 +179,7 @@ export default function DeliveryDashboard() {
 
     setAvailableJobs(availableJobs.filter((j) => j.id !== jobId));
     setActiveJobs([{ ...jobToClaim, status: "Packed" }, ...activeJobs]);
-    showToast(`⚡ Order #${jobId} claimed! Moved to Active Deliveries.`);
+    showToast(`Order #${jobId} claimed! Moved to Active Deliveries.`);
   };
 
   // Update Status Backend Integration
@@ -207,7 +207,7 @@ export default function DeliveryDashboard() {
       setActiveJobs(
         activeJobs.map((j) => (j.id === jobId ? { ...j, status: "Out for Delivery" } : j))
       );
-      showToast(`📦 Order #${jobId} status updated to Out for Delivery!`);
+      showToast(`Order #${jobId} status updated to Out for Delivery!`);
     } else {
       setActiveJobs(activeJobs.filter((j) => j.id !== jobId));
       setHistoryJobs([
@@ -219,7 +219,7 @@ export default function DeliveryDashboard() {
         },
         ...historyJobs,
       ]);
-      showToast(`✅ Order #${jobId} successfully delivered! Payout added.`);
+      showToast(`Order #${jobId} successfully delivered! Payout added.`);
     }
   };
 

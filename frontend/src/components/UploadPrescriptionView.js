@@ -80,7 +80,7 @@ export default function UploadPrescriptionView() {
       {/* Upload Notification Toast */}
       {uploadSuccess && (
         <div className="bg-emerald-900 text-white p-4 rounded-xl shadow-lg border border-emerald-700 text-xs font-bold flex items-center justify-between animate-in fade-in">
-          <span>✅ Prescription uploaded successfully! Sent to {selectedPharmacy} pharmacist queue for review.</span>
+          <span>Prescription uploaded successfully! Sent to {selectedPharmacy} pharmacist queue for review.</span>
           <span className="text-[10px] bg-emerald-800 px-2 py-1 rounded">Pending Review</span>
         </div>
       )}

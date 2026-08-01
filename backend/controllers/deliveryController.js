@@ -1,11 +1,6 @@
 const prisma = require("../config/db");
 const { createNotification } = require("../services/notificationService");
 
-/**
- * @desc Get available unassigned delivery jobs from Database
- * @route GET /api/delivery/available
- * @access Private (DELIVERY_PARTNER, ADMIN)
- */
 const getAvailableJobs = async (req, res) => {
   try {
     const { branchId } = req.query;
@@ -42,11 +37,6 @@ const getAvailableJobs = async (req, res) => {
   }
 };
 
-/**
- * @desc Get active deliveries claimed by current partner from Database
- * @route GET /api/delivery/active
- * @access Private (DELIVERY_PARTNER, ADMIN)
- */
 const getActiveJobs = async (req, res) => {
   try {
     const deliveryPartnerId = req.user.id;
@@ -79,11 +69,6 @@ const getActiveJobs = async (req, res) => {
   }
 };
 
-/**
- * @desc Get completed delivery history for partner from Database
- * @route GET /api/delivery/history
- * @access Private (DELIVERY_PARTNER, ADMIN)
- */
 const getDeliveryHistory = async (req, res) => {
   try {
     const deliveryPartnerId = req.user.id;
@@ -119,11 +104,6 @@ const getDeliveryHistory = async (req, res) => {
   }
 };
 
-/**
- * @desc Claim an available pickup job in Database
- * @route POST /api/delivery/claim/:orderId
- * @access Private (DELIVERY_PARTNER, ADMIN)
- */
 const claimOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -179,11 +159,6 @@ const claimOrder = async (req, res) => {
   }
 };
 
-/**
- * @desc Update delivery status (Out for Delivery -> Delivered) in Database
- * @route PATCH /api/delivery/status/:orderId
- * @access Private (DELIVERY_PARTNER, ADMIN)
- */
 const updateDeliveryStatus = async (req, res) => {
   try {
     const { orderId } = req.params;

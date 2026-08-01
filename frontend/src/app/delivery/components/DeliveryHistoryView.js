@@ -67,7 +67,7 @@ export default function DeliveryHistoryView({ jobs = [], onOpenDetails }) {
       {filteredJobs.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-md mx-auto my-8 shadow-xs">
           <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-            📦
+            
           </div>
           <h3 className="text-base font-bold text-slate-800">No Completed Deliveries Found</h3>
           <p className="text-xs text-slate-500 mt-2">

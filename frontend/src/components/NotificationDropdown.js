@@ -75,11 +75,11 @@ export default function NotificationDropdown({ onClose, user }) {
       case "PRESCRIPTION":
         return "📜";
       case "ORDER_STATUS":
-        return "📦";
+        return "";
       case "LOW_STOCK":
         return "⚠️";
       case "DELIVERY":
-        return "🚚";
+        return "";
       default:
         return "🔔";
     }

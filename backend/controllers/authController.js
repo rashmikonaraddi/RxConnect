@@ -8,7 +8,7 @@ const generateToken = (id, role, email) => {
   return jwt.sign({ id, role, email }, JWT_SECRET, { expiresIn: "7d" });
 };
 
-// Helper: Normalize Role String
+
 const normalizeRole = (r) => {
   if (!r) return "CUSTOMER";
   const upper = r.toString().toUpperCase().replace(/\s+/g, "_");
@@ -19,8 +19,6 @@ const normalizeRole = (r) => {
   return "CUSTOMER";
 };
 
-// @desc Register User (Stored directly in Database)
-// @route POST /api/auth/signup
 const signup = async (req, res) => {
   try {
     const { fullName, email, password, phone, role, employeeId, vehicle, branchId } = req.body;
@@ -77,8 +75,6 @@ const signup = async (req, res) => {
   }
 };
 
-// @desc Login User (Authenticates against Database)
-// @route POST /api/auth/login
 const login = async (req, res) => {
   try {
     const { email, password, role } = req.body;
@@ -145,8 +141,6 @@ const login = async (req, res) => {
   }
 };
 
-// @desc Get current logged in user profile from Database
-// @route GET /api/auth/me
 const getMe = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -188,8 +182,6 @@ const getMe = async (req, res) => {
   }
 };
 
-// @desc Update current logged in user profile in Database
-// @route PUT /api/auth/me
 const updateMe = async (req, res) => {
   try {
     const userId = req.user?.id;

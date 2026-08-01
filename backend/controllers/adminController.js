@@ -1,10 +1,5 @@
 const prisma = require("../config/db");
 
-/**
- * @desc Get Admin Dashboard Overview Snapshot from Database
- * @route GET /api/admin/overview
- * @access Private (ADMIN)
- */
 const getDashboardOverview = async (req, res) => {
   try {
     const ordersTodayCount = await prisma.order.count();
@@ -43,11 +38,6 @@ const getDashboardOverview = async (req, res) => {
   }
 };
 
-/**
- * @desc Get All Registered System Users from Database
- * @route GET /api/admin/users
- * @access Private (ADMIN)
- */
 const getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
@@ -81,11 +71,7 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-/**
- * @desc Update User System Role & Branch Assignment in Database
- * @route PATCH /api/admin/users/:userId/role
- * @access Private (ADMIN)
- */
+
 const updateUserRole = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -126,11 +112,6 @@ const updateUserRole = async (req, res) => {
   }
 };
 
-/**
- * @desc Get All Physical Pharmacy Branches from Database
- * @route GET /api/admin/branches
- * @access Private (ADMIN)
- */
 const getAllBranches = async (req, res) => {
   try {
     const branches = await prisma.branch.findMany({
@@ -155,11 +136,6 @@ const getAllBranches = async (req, res) => {
   }
 };
 
-/**
- * @desc Register a New Pharmacy Branch Location in Database
- * @route POST /api/admin/branches
- * @access Private (ADMIN)
- */
 const createBranch = async (req, res) => {
   try {
     const { code, name, address, phone, fulfillmentRate } = req.body;
@@ -196,11 +172,6 @@ const createBranch = async (req, res) => {
   }
 };
 
-/**
- * @desc Update Physical Pharmacy Branch in Database
- * @route PATCH /api/admin/branches/:branchId
- * @access Private (ADMIN)
- */
 const updateBranch = async (req, res) => {
   try {
     const { branchId } = req.params;
@@ -231,12 +202,6 @@ const updateBranch = async (req, res) => {
     });
   }
 };
-
-/**
- * @desc Get Sales & Order Analytics from Database
- * @route GET /api/admin/analytics/:branchId
- * @access Private (ADMIN)
- */
 const getBranchAnalytics = async (req, res) => {
   try {
     const { branchId } = req.params;
@@ -255,7 +220,6 @@ const getBranchAnalytics = async (req, res) => {
     const totalRevenue = revenueAggregate._sum.totalAmount || 0.0;
     const totalOrders = revenueAggregate._count.id || 0;
 
-    // Rx vs OTC Items Count
     const orderItems = await prisma.orderItem.findMany({
       where: whereClause.branchId ? { order: { branchId: whereClause.branchId } } : {},
     });
@@ -266,7 +230,6 @@ const getBranchAnalytics = async (req, res) => {
     const rxPercentage = Math.round((rxCount / totalItems) * 100);
     const otcPercentage = 100 - rxPercentage;
 
-    // Top Selling Medicines aggregated from OrderItems
     const topMedicineMap = {};
     orderItems.forEach((item) => {
       const key = item.medicineName;
@@ -317,11 +280,6 @@ const getBranchAnalytics = async (req, res) => {
   }
 };
 
-/**
- * @desc Register a New Medicine & Assign Initial Inventory Stock
- * @route POST /api/admin/medicines
- * @access Private (ADMIN)
- */
 const createMedicine = async (req, res) => {
   try {
     const {

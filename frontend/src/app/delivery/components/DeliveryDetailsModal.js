@@ -144,7 +144,7 @@ export default function DeliveryDetailsModal({ job, onClose, onUpdateStatus, mod
 
           <div>
             <h4 className="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2">
-              <span>📦 Package Item Breakdown</span>
+              <span>Package Item Breakdown</span>
               <span className="text-xs font-normal text-slate-500">({job.items ? job.items.length : 2} items)</span>
             </h4>
             <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden bg-white">
@@ -221,7 +221,7 @@ export default function DeliveryDetailsModal({ job, onClose, onUpdateStatus, mod
               disabled={isSubmitting}
               className="px-5 py-2.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm flex items-center gap-2"
             >
-              {isSubmitting ? "Accepting Job..." : "⚡ Claim & Self-Assign Delivery"}
+              {isSubmitting ? "Accepting Job..." : "Claim & Self-Assign Delivery"}
             </button>
           )}
 
@@ -231,7 +231,7 @@ export default function DeliveryDetailsModal({ job, onClose, onUpdateStatus, mod
               disabled={isSubmitting}
               className="px-5 py-2.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm flex items-center gap-2"
             >
-              {isSubmitting ? "Updating..." : "📦 Confirm Pickup at Branch"}
+              {isSubmitting ? "Updating..." : "Confirm Pickup at Branch"}
             </button>
           )}
 
@@ -241,7 +241,7 @@ export default function DeliveryDetailsModal({ job, onClose, onUpdateStatus, mod
               disabled={isSubmitting}
               className="px-5 py-2.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors shadow-sm flex items-center gap-2"
             >
-              {isSubmitting ? "Completing..." : "✅ Complete & Mark Delivered"}
+              {isSubmitting ? "Completing..." : "Complete & Mark Delivered"}
             </button>
           )}
         </div>

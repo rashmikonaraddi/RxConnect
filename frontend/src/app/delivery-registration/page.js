@@ -67,7 +67,7 @@ export default function DeliveryRegistration() {
       <div className="w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden border border-slate-100">
         {/* Header */}
         <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 px-8 py-8 text-center text-white">
-          <div className="text-5xl mb-3">🚚</div>
+          <div className="text-5xl mb-3"></div>
           <h1 className="text-3xl font-extrabold">Delivery Partner Sign Up</h1>
           <p className="text-amber-100 text-sm mt-1">
             Deliver prescription orders, earn payouts, and support healthcare logistics

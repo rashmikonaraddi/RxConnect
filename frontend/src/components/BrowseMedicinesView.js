@@ -143,7 +143,7 @@ export default function BrowseMedicinesView({ onAddToCart, onPlaceOrder }) {
                       onClick={() => onPlaceOrder && onPlaceOrder(m)}
                       className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-2 rounded-xl transition-colors cursor-pointer text-center"
                     >
-                      ⚡ Place Order
+                      Place Order
                     </button>
                   </div>
                 </div>
@@ -219,7 +219,7 @@ export default function BrowseMedicinesView({ onAddToCart, onPlaceOrder }) {
                   }}
                   className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer"
                 >
-                  ⚡ Place Order
+                  Place Order
                 </button>
               </div>
             </div>

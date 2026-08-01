@@ -30,11 +30,10 @@ app.use(express.urlencoded({ extended: true }));
 // Static folder for uploaded prescription images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Health Check
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "RxConnect Pharmacy Platform Backend API is Running 🚀",
+    message: "RxConnect Pharmacy Platform Backend API is Running",
     status: "Healthy",
   });
 });
@@ -51,9 +50,8 @@ app.use("/api/inventory", inventoryRoutes);
 // Admin Module Routes (Issues #43, #44, #45, #46)
 app.use("/api/admin", adminRoutes);
 
-// Using Port 5001 to avoid Windows System Service port 5000 conflict
 const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
