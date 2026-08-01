@@ -1,4 +1,5 @@
 const prisma = require("../config/db");
+const { createNotification } = require("../services/notificationService");
 
 // @desc Upload new prescription (Stored in Database)
 // @route POST /api/prescriptions/upload
@@ -32,6 +33,14 @@ const uploadPrescription = async (req, res) => {
       include: {
         user: { select: { id: true, fullName: true, email: true, phone: true } },
       },
+    });
+
+    // Send Notification to Pharmacists Queue
+    await createNotification({
+      role: "PHARMACIST",
+      title: "New Prescription Uploaded",
+      message: `Customer ${rx.user?.fullName || "User"} uploaded a new doctor prescription for verification.`,
+      type: "INFO",
     });
 
     return res.status(201).json({
@@ -100,6 +109,17 @@ const updatePrescriptionStatus = async (req, res) => {
         rejectionReason: finalReason,
       },
       include: { user: { select: { id: true, fullName: true, email: true } } },
+    });
+
+    // Notify Customer about prescription status change
+    await createNotification({
+      userId: updated.userId,
+      role: "CUSTOMER",
+      title: nextStatus === "APPROVED" ? "Prescription Approved ✓" : "Prescription Rejected ❌",
+      message: nextStatus === "APPROVED"
+        ? `Your prescription has been approved by the pharmacist. You can now order prescription items!`
+        : `Your prescription was rejected. Reason: ${finalReason}`,
+      type: nextStatus === "APPROVED" ? "SUCCESS" : "WARNING",
     });
 
     return res.json({

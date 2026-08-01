@@ -1,4 +1,5 @@
 const prisma = require("../config/db");
+const { createNotification } = require("../services/notificationService");
 
 // @desc Create new customer order in Database
 // @route POST /api/orders
@@ -60,6 +61,24 @@ const createOrder = async (req, res) => {
         },
       },
       include: { items: true, branch: true, customer: { select: { id: true, fullName: true, email: true } } },
+    });
+
+    // Notify Customer about Order Placement
+    await createNotification({
+      userId: customerId,
+      role: "CUSTOMER",
+      title: `Order #${orderId} Placed Successfully 🛍️`,
+      message: `Your prescription order for ₹${finalTotal.toFixed(2)} was received and assigned to ${newOrder.branch?.name || "pharmacy"}.`,
+      type: "SUCCESS",
+    });
+
+    // Notify Pharmacist & Delivery Partner Queues
+    await createNotification({
+      role: "PHARMACIST",
+      branchId: targetBranchId,
+      title: `New Order #${orderId} Verification Queue`,
+      message: `A new order with ${itemsParsed.length} item(s) has been placed at branch ${newOrder.branch?.name}.`,
+      type: "INFO",
     });
 
     return res.status(201).json({

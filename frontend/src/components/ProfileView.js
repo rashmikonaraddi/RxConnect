@@ -234,7 +234,20 @@ export default function ProfileView({ user, onUpdateUser }) {
           </div>
 
           {/* Card Footer Action */}
-          <div className="mt-10 pt-6 border-t border-slate-100 flex justify-end">
+          <div className="mt-10 pt-6 border-t border-slate-100 flex items-center justify-between">
+            <button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  localStorage.removeItem("rxconnect_token");
+                  localStorage.removeItem("rxconnect_user");
+                  window.location.href = "/login";
+                }
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-sm font-semibold rounded-xl transition cursor-pointer"
+            >
+              <span>🚪 Sign Out / Logout</span>
+            </button>
+
             <button
               onClick={() => {
                 setEditForm({ ...user });

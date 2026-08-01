@@ -317,6 +317,89 @@ const getBranchAnalytics = async (req, res) => {
   }
 };
 
+/**
+ * @desc Register a New Medicine & Assign Initial Inventory Stock
+ * @route POST /api/admin/medicines
+ * @access Private (ADMIN)
+ */
+const createMedicine = async (req, res) => {
+  try {
+    const {
+      name,
+      category,
+      dosage,
+      manufacturer,
+      description,
+      price,
+      prescriptionRequired,
+      imageUrl,
+      branchId,
+      initialStock,
+    } = req.body;
+
+    if (!name || !category || price === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required medicine fields: name, category, and price are mandatory.",
+      });
+    }
+
+    const parsePrice = typeof price === "number" ? price : parseFloat(String(price).replace(/[^0-9.]/g, "")) || 0;
+    const isRx = Boolean(prescriptionRequired);
+
+    const medicine = await prisma.medicine.create({
+      data: {
+        name,
+        category,
+        dosage: dosage || "Standard Dosage",
+        manufacturer: manufacturer || "RxConnect Certified Pharma",
+        description: description || null,
+        price: parsePrice,
+        prescriptionRequired: isRx,
+        imageUrl: imageUrl || "https://placehold.co/600x400/0b193c/emerald?text=Medicine+Scan",
+      },
+    });
+
+    const stockAmount = initialStock ? parseInt(initialStock, 10) : 50;
+
+    if (branchId) {
+      await prisma.inventory.create({
+        data: {
+          medicineId: medicine.id,
+          branchId,
+          quantity: stockAmount,
+          threshold: 10,
+        },
+      });
+    } else {
+      const branches = await prisma.branch.findMany();
+      for (const b of branches) {
+        await prisma.inventory.create({
+          data: {
+            medicineId: medicine.id,
+            branchId: b.id,
+            quantity: stockAmount,
+            threshold: 10,
+          },
+        });
+      }
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: `Medicine '${name}' registered successfully and stock allocated!`,
+      data: medicine,
+    });
+  } catch (error) {
+    console.error("Error creating medicine:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error registering medicine in database.",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getDashboardOverview,
   getAllUsers,
@@ -325,4 +408,5 @@ module.exports = {
   createBranch,
   updateBranch,
   getBranchAnalytics,
+  createMedicine,
 };

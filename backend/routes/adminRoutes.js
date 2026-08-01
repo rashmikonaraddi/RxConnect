@@ -8,6 +8,7 @@ const {
   createBranch,
   updateBranch,
   getBranchAnalytics,
+  createMedicine,
 } = require("../controllers/adminController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
@@ -32,5 +33,8 @@ router.post("/branches/:branchId", updateBranch); // Alias
 // Issue #46: Branch Sales & Revenue Analytics (Express v5 compliant routes)
 router.get("/analytics", getBranchAnalytics);
 router.get("/analytics/:branchId", getBranchAnalytics);
+
+// Admin Medicine Catalog Management (Add Medicine to DB)
+router.post("/medicines", createMedicine);
 
 module.exports = router;

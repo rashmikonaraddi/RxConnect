@@ -8,6 +8,7 @@ import AdminDashboardOverview from "./components/AdminDashboardOverview";
 import UserManagementView from "./components/UserManagementView";
 import BranchManagementView from "./components/BranchManagementView";
 import AnalyticsView from "./components/AnalyticsView";
+import MedicineManagementView from "./components/MedicineManagementView";
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -188,6 +189,7 @@ export default function AdminDashboardPage() {
           <div className="flex space-x-6">
             {[
               { id: "dashboard", label: "Dashboard Overview", count: null },
+              { id: "medicines", label: "Medicine Catalog (Add Medicine)", count: null },
               { id: "users", label: "User Management", count: users.length },
               { id: "branches", label: "Branch Management", count: branches.length },
               { id: "analytics", label: "Sales & Analytics (INR ₹)", count: null },
@@ -231,6 +233,8 @@ export default function AdminDashboardPage() {
             onNavigateTab={setActiveTab}
           />
         )}
+
+        {activeTab === "medicines" && <MedicineManagementView branches={branches} />}
 
         {activeTab === "users" && (
           <UserManagementView

@@ -115,6 +115,14 @@ export default function Header({ user }) {
     }) + " IST";
   };
 
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("rxconnect_token");
+      localStorage.removeItem("rxconnect_user");
+      window.location.href = "/login";
+    }
+  };
+
   return (
     <header className="bg-gradient-to-r from-[#0b193c] via-[#102454] to-[#0b193c] text-white pt-8 pb-16 px-6 md:px-12 shadow-xl relative overflow-visible z-40">
       {/* Ambient Lighting */}
@@ -259,6 +267,15 @@ export default function Header({ user }) {
               </span>
             </div>
           </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            title="Sign out of account"
+            className="flex items-center gap-1.5 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/30 text-rose-200 hover:text-white px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer shadow-xs hover:scale-105"
+          >
+            <span>🚪 Logout</span>
+          </button>
         </div>
       </div>
     </header>
